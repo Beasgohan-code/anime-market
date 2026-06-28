@@ -1,1 +1,136 @@
-<html><body>Hello from Termux 🎴</body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anime Market</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, system-ui, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: #fff;
+    min-height: 100vh;
+    padding: 20px 16px;
+  }
+  .header { text-align: center; margin-bottom: 24px; }
+  .header h1 { font-size: 28px; margin-bottom: 4px; }
+  .header p { opacity: 0.7; font-size: 14px; }
+  .balance-card {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+  .balance-card .label { font-size: 12px; opacity: 0.6; text-transform: uppercase; }
+  .balance-card .amount { font-size: 36px; font-weight: 700; margin-top: 4px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .card {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 14px;
+    padding: 14px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .card:active { transform: scale(0.96); }
+  .card .emoji { font-size: 42px; text-align: center; margin-bottom: 8px; }
+  .card .name { font-weight: 600; font-size: 14px; }
+  .card .rarity { font-size: 11px; opacity: 0.7; margin-top: 2px; }
+  .card .price { color: #4ade80; font-weight: 700; margin-top: 6px; font-size: 15px; }
+  .section-title { font-size: 16px; font-weight: 600; margin: 20px 0 12px; }
+  .toast {
+    position: fixed; bottom: 30px; left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.9);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 24px;
+    font-size: 14px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>Anime Market</h1>
+    <p>Trade your favorite characters</p>
+  </div>
+
+  <div class="balance-card">
+    <div class="label">Your Balance</div>
+    <div class="amount" id="balance">1,000</div>
+  </div>
+
+  <div class="section-title">Featured Characters</div>
+  <div class="grid" id="market"></div>
+
+  <div id="toast" class="toast"></div>
+
+<script>
+const tg = window.Telegram?.WebApp;
+if (tg) {
+  tg.ready();
+  tg.expand();
+}
+
+const characters = [
+  { id: 1, name: "Naruto", emoji: "🦊", rarity: "Legendary", price: 2500 },
+  { id: 2, name: "Goku", emoji: "🟠", rarity: "Mythic", price: 5000 },
+  { id: 3, name: "Luffy", emoji: "🏴‍☠️", rarity: "Legendary", price: 2800 },
+  { id: 4, name: "Tanjiro", emoji: "⚔️", rarity: "Epic", price: 1500 },
+  { id: 5, name: "Eren", emoji: "👁", rarity: "Epic", price: 1600 },
+  { id: 6, name: "Zoro", emoji: "🗡", rarity: "Rare", price: 900 }
+];
+
+let balance = 1000;
+
+const market = document.getElementById("market");
+const balanceEl = document.getElementById("balance");
+const toastEl = document.getElementById("toast");
+
+function render() {
+  market.innerHTML = "";
+  characters.forEach(c => {
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `
+      <div class="emoji">${c.emoji}</div>
+      <div class="name">${c.name}</div>
+      <div class="rarity">${c.rarity}</div>
+      <div class="price">🪙 ${c.price.toLocaleString()}</div>
+    `;
+    div.onclick = () => buy(c);
+    market.appendChild(div);
+  });
+  balanceEl.textContent = balance.toLocaleString();
+}
+
+function buy(c) {
+  if (balance < c.price) {
+    showToast("Not enough coins");
+    return;
+  }
+  balance -= c.price;
+  showToast(`Bought ${c.name}!`);
+  if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred("success");
+  render();
+}
+
+function showToast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add("show");
+  setTimeout(() => toastEl.classList.remove("show"), 1800);
+}
+
+render();
+</script>
+</body>
+</html>

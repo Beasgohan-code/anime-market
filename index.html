@@ -6,769 +6,209 @@
 <title>✨ Summon Collection ✨</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-
-  /* ============================================================
-     🎨 PART 1 — COSMIC THEME CORE
-     Variables · Reset · Background · Topbar · Bottom Nav
-     ============================================================ */
-  :root {
-    --bg-deep: #07040f;
-    --bg-mid: #11091f;
-    --bg-card: #1a1132;
-    --bg-elev: #261a4a;
-    --accent-cyan: #00e6ff;
-    --accent-purple: #b35cff;
-    --accent-pink: #ff5cc8;
-    --accent-gold: #ffd86b;
-    --accent-astrite: #7ad7ff;
-    --text-main: #f3eaff;
-    --text-dim: #a89cc8;
-    --text-faint: #6b6080;
-    --border-soft: rgba(179, 92, 255, 0.18);
-    --border-mid: rgba(179, 92, 255, 0.38);
-    --glow-purple: 0 0 24px rgba(179, 92, 255, 0.45);
-    --glow-cyan: 0 0 18px rgba(0, 230, 255, 0.5);
-    --glow-gold: 0 0 22px rgba(255, 216, 107, 0.55);
-    --r-sm: 8px; --r-md: 14px; --r-lg: 22px; --r-pill: 999px;
-    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "SF Pro Display", system-ui, sans-serif;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body { background: var(--bg-deep); color: var(--text-main); font-family: var(--font); min-height: 100vh; overflow-x: hidden; user-select: none; }
-  body {
-    background:
-      radial-gradient(900px 700px at 80% -10%, rgba(179, 92, 255, 0.18), transparent 60%),
-      radial-gradient(700px 500px at -10% 50%, rgba(0, 230, 255, 0.08), transparent 60%),
-      linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 100%);
-    padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px));
-    padding-top: env(safe-area-inset-top, 0px);
-  }
-
-  /* 🌟 Subtle floating star particles */
-  body::before {
-    content: "";
-    position: fixed; inset: 0;
-    background-image:
-      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.5), transparent),
-      radial-gradient(1px 1px at 70% 80%, rgba(0,230,255,0.4), transparent),
-      radial-gradient(1px 1px at 40% 60%, rgba(255,92,200,0.4), transparent),
-      radial-gradient(1px 1px at 85% 20%, rgba(255,216,107,0.4), transparent),
-      radial-gradient(1px 1px at 10% 75%, rgba(255,255,255,0.3), transparent);
-    background-size: 100% 100%;
-    pointer-events: none;
-    z-index: 0;
-    animation: drift 60s linear infinite;
-  }
-  @keyframes drift { from { transform: translateY(0); } to { transform: translateY(-50px); } }
-
-  /* ============================================================
-     📱 TOP BAR
-     ============================================================ */
-  .topbar {
-    position: sticky; top: 0; z-index: 50;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 16px;
-    background: rgba(7, 4, 15, 0.78);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border-bottom: 1px solid var(--border-soft);
-  }
-  .topbar .title {
-    font-size: 18px; font-weight: 800;
-    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple) 55%, var(--accent-pink));
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-    letter-spacing: 0.5px;
-    animation: shimmer 3s ease-in-out infinite;
-  }
-  @keyframes shimmer { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.25); } }
-  .balance-pill {
-    display: flex; align-items: center; gap: 6px;
-    padding: 7px 14px;
-    background: linear-gradient(135deg, rgba(122, 215, 255, 0.18), rgba(0, 230, 255, 0.04));
-    border: 1px solid rgba(122, 215, 255, 0.45);
-    border-radius: var(--r-pill);
-    font-size: 14px; font-weight: 800; color: var(--accent-astrite);
-    box-shadow: var(--glow-cyan);
-    transition: transform 0.15s;
-  }
-  .balance-pill:active { transform: scale(0.94); }
-  .balance-pill .icon { font-size: 16px; animation: spin 8s linear infinite; display: inline-block; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* ============================================================
-     🏠 SECTION CONTAINER
-     ============================================================ */
-  .section { display: none; padding: 16px; animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); position: relative; z-index: 1; }
-  .section.active { display: block; }
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
-
-  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-  .section-title { font-size: 20px; font-weight: 800; }
-  .section-subtitle { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
-
-  /* ============================================================
-     🦸 HOME: PROFILE CARD
-     ============================================================ */
-  .profile-card {
-    background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-elev) 100%);
-    border: 1px solid var(--border-mid);
-    border-radius: var(--r-lg);
-    padding: 20px;
-    margin-bottom: 18px;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-  }
-  .profile-card::before {
-    content: "";
-    position: absolute; top: -50%; right: -30%;
-    width: 240px; height: 240px;
-    background: radial-gradient(circle, rgba(179, 92, 255, 0.3), transparent 60%);
-    pointer-events: none;
-    animation: floatGlow 6s ease-in-out infinite;
-  }
-  @keyframes floatGlow { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-20px, 20px) scale(1.1); } }
-  .profile-card::after {
-    content: ""; position: absolute; inset: 0;
-    background: linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.03) 50%);
-    pointer-events: none;
-  }
-  .profile-row { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
-  .avatar {
-    width: 64px; height: 64px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
-    display: flex; align-items: center; justify-content: center;
-    font-size: 32px;
-    box-shadow: var(--glow-purple);
-    flex-shrink: 0;
-    animation: avatarPulse 3s ease-in-out infinite;
-  }
-  @keyframes avatarPulse { 0%,100% { box-shadow: var(--glow-purple); } 50% { box-shadow: 0 0 32px rgba(179,92,255,0.7); } }
-  .profile-info { flex: 1; min-width: 0; }
-  .profile-name { font-size: 17px; font-weight: 800; }
-  .profile-uid { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
-  .profile-stats {
-    display: flex; gap: 18px; margin-top: 16px; padding-top: 14px;
-    border-top: 1px solid var(--border-soft); position: relative; z-index: 1;
-  }
-  .stat { flex: 1; text-align: center; }
-  .stat-num { font-size: 18px; font-weight: 800; color: var(--accent-cyan); }
-  .stat-label { font-size: 11px; color: var(--text-dim); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
-
-  /* ============================================================
-     🎁 DAILY CLAIM BANNER
-     ============================================================ */
-  .daily-banner {
-    background:
-      linear-gradient(135deg, rgba(255, 216, 107, 0.15), rgba(255, 92, 200, 0.1)),
-      var(--bg-card);
-    border: 1.5px solid var(--accent-gold);
-    border-radius: var(--r-lg);
-    padding: 18px;
-    margin-bottom: 18px;
-    display: flex; align-items: center; gap: 14px;
-    box-shadow: var(--glow-gold);
-    position: relative; overflow: hidden;
-  }
-  .daily-banner::before {
-    content: "";
-    position: absolute; top: 0; left: -100%;
-    width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-    animation: sweep 3s ease-in-out infinite;
-  }
-  @keyframes sweep { to { left: 100%; } }
-  .daily-banner::after { content: "✨"; position: absolute; right: -10px; bottom: -20px; font-size: 80px; opacity: 0.1; transform: rotate(15deg); }
-  .daily-icon {
-    width: 56px; height: 56px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent-gold), #ff8a3d);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 28px; flex-shrink: 0;
-    box-shadow: 0 4px 16px rgba(255, 216, 107, 0.4);
-    animation: bounce 2s ease-in-out infinite;
-  }
-  @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-  .daily-text { flex: 1; position: relative; z-index: 1; }
-  .daily-title { font-size: 16px; font-weight: 800; }
-  .daily-sub { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
-  .daily-streak {
-    display: inline-block; margin-top: 6px; padding: 3px 10px;
-    background: rgba(255, 92, 200, 0.15);
-    border: 1px solid rgba(255, 92, 200, 0.4);
-    border-radius: var(--r-pill);
-    font-size: 11px; color: var(--accent-pink); font-weight: 700;
-  }
-  .claim-btn {
-    padding: 10px 18px;
-    background: linear-gradient(135deg, var(--accent-gold), #ff8a3d);
-    color: #2a1a00; border: none; border-radius: var(--r-pill);
-    font-weight: 800; font-size: 13px; cursor: pointer;
-    box-shadow: 0 4px 14px rgba(255, 216, 107, 0.5);
-    transition: transform 0.1s;
-    position: relative; z-index: 1;
-  }
-  .claim-btn:active { transform: scale(0.93); }
-  .claim-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .claim-btn.claimed { background: var(--bg-elev); color: var(--text-dim); box-shadow: none; }
-
-  /* ============================================================
-     🎯 FEATURE GRID (Home)
-     ============================================================ */
-  .feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  .feature-tile {
-    background: var(--bg-card);
-    border: 1px solid var(--border-soft);
-    border-radius: var(--r-md);
-    padding: 18px 14px;
-    text-align: center;
-    cursor: pointer;
-    transition: transform 0.15s cubic-bezier(0.16,1,0.3,1), border-color 0.2s, box-shadow 0.2s;
-    position: relative; overflow: hidden;
-  }
-  .feature-tile::before {
-    content: ""; position: absolute; inset: 0;
-    background: radial-gradient(circle at 50% 0%, rgba(179,92,255,0.15), transparent 70%);
-    opacity: 0; transition: opacity 0.2s;
-  }
-  .feature-tile:hover::before, .feature-tile:active::before { opacity: 1; }
-  .feature-tile:active { transform: scale(0.96); }
-  .feature-tile:hover { border-color: var(--border-mid); box-shadow: var(--glow-purple); }
-  .feature-icon { font-size: 36px; margin-bottom: 8px; position: relative; }
-  .feature-label { font-size: 13px; font-weight: 700; position: relative; }
-  .feature-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; position: relative; }
-  .feature-tile.locked .feature-icon { filter: grayscale(0.5) brightness(0.8); }
-  .feature-badge {
-    display: inline-block; margin-top: 6px; padding: 2px 8px;
-    background: rgba(255, 92, 200, 0.18);
-    border: 1px solid rgba(255, 92, 200, 0.4);
-    border-radius: var(--r-pill);
-    font-size: 9px; color: var(--accent-pink); font-weight: 700; text-transform: uppercase;
-  }
-
-  /* ============================================================
-     🧭 BOTTOM NAV
-     ============================================================ */
-  .bottom-nav {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    display: flex;
-    background: rgba(7, 4, 15, 0.92);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border-top: 1px solid var(--border-soft);
-    z-index: 40;
-    padding: 6px 4px calc(env(safe-area-inset-bottom, 0px) + 6px);
-  }
-  .nav-btn {
-    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
-    padding: 8px 4px; background: transparent; border: none;
-    color: var(--text-faint); font-size: 10px; font-weight: 600;
-    cursor: pointer; border-radius: var(--r-sm);
-    transition: color 0.2s, transform 0.1s;
-    position: relative;
-  }
-  .nav-btn .nav-icon { font-size: 22px; transition: transform 0.2s cubic-bezier(0.16,1,0.3,1); }
-  .nav-btn.active { color: var(--accent-cyan); }
-  .nav-btn.active .nav-icon { transform: translateY(-2px) scale(1.15); filter: drop-shadow(0 0 8px var(--accent-cyan)); }
-  .nav-btn:active .nav-icon { transform: scale(0.85); }
-  .nav-btn::before {
-    content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-    width: 0; height: 2px; background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
-    border-radius: 0 0 4px 4px;
-    transition: width 0.3s cubic-bezier(0.16,1,0.3,1);
-  }
-  .nav-btn.active::before { width: 30px; }
-
-  /* ============================================================
-     🔔 TOAST
-     ============================================================ */
-  .toast {
-    position: fixed; bottom: 110px; left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    padding: 11px 22px;
-    background: var(--bg-elev);
-    border: 1px solid var(--border-mid);
-    border-radius: var(--r-pill);
-    font-size: 13px; font-weight: 600;
-    box-shadow: 0 8px 28px rgba(0,0,0,0.6);
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.3s, transform 0.3s cubic-bezier(0.16,1,0.3,1);
-    z-index: 200; max-width: 84%; text-align: center;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  .toast.success { border-color: var(--accent-cyan); color: var(--accent-cyan); }
-  .toast.error { border-color: var(--accent-pink); color: var(--accent-pink); }
-  .toast.gold { border-color: var(--accent-gold); color: var(--accent-gold); }
-
-  /* ============================================================
-     🎉 RIBBON BURST (claim reward)
-     ============================================================ */
-  .ribbon-burst {
-    position: fixed; inset: 0; pointer-events: none; z-index: 300;
-    display: none;
-  }
-  .ribbon-burst.show { display: block; }
-  .ribbon {
-    position: absolute; width: 12px; height: 12px;
-    border-radius: 50%;
-    animation: ribbonFall 1.4s cubic-bezier(0.16,1,0.3,1) forwards;
-  }
-  @keyframes ribbonFall {
-    0% { transform: translate(0,0) scale(0) rotate(0); opacity: 1; }
-    100% { transform: translate(var(--dx), var(--dy)) scale(1.4) rotate(720deg); opacity: 0; }
-  }
-
-  /* ============================================================
-     📦 EMPTY STATE
-     ============================================================ */
-  .empty { text-align: center; padding: 40px 20px; color: var(--text-dim); }
-  .empty-icon { font-size: 48px; margin-bottom: 10px; opacity: 0.5; }
-  .empty-text { font-size: 14px; }
-
-
-
-
-  /* ============================================================
-     PART 3 — INVENTORY
-     ============================================================ */
-  .inv-summary {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
-    margin-bottom: 14px;
-  }
-  .inv-stat {
-    background: var(--bg-card);
-    border: 1px solid var(--border-soft);
-    border-radius: var(--r-md);
-    padding: 12px 10px;
-    text-align: center;
-    transition: transform 0.15s;
-  }
-  .inv-stat:active { transform: scale(0.96); }
-  .inv-stat-num { font-size: 18px; font-weight: 800; }
-  .inv-stat-label { font-size: 10px; color: var(--text-dim); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
-  .inv-stat.total .inv-stat-num { color: var(--accent-cyan); }
-  .inv-stat.value .inv-stat-num { color: var(--accent-gold); }
-  .inv-stat.fav .inv-stat-num { color: var(--accent-pink); }
-
-  .inv-tabs {
-    display: flex; gap: 6px; margin-bottom: 14px;
-    overflow-x: auto; -webkit-overflow-scrolling: touch;
-    padding-bottom: 4px;
-  }
-  .inv-tabs::-webkit-scrollbar { display: none; }
-  .inv-tab {
-    padding: 8px 14px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-soft);
-    border-radius: var(--r-pill);
-    font-size: 12px; font-weight: 600; color: var(--text-dim);
-    cursor: pointer; white-space: nowrap;
-    transition: background 0.15s, color 0.15s, border-color 0.15s;
-  }
-  .inv-tab:active { transform: scale(0.95); }
-  .inv-tab.active {
-    background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
-    color: white; border-color: transparent;
-    box-shadow: var(--glow-purple);
-  }
-  .inv-tab .count {
-    display: inline-block; margin-left: 5px;
-    padding: 1px 7px; background: rgba(255,255,255,0.18);
-    border-radius: var(--r-pill); font-size: 10px; font-weight: 800;
-  }
-  .inv-tab:not(.active) .count { background: rgba(179,92,255,0.18); color: var(--text-dim); }
-
-  /* Inventory card variant */
-  .char-card .fav-btn {
-    position: absolute; top: 8px; left: 8px;
-    width: 28px; height: 28px; border-radius: 50%;
-    background: rgba(7,4,15,0.8);
-    border: 1px solid var(--border-soft);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px; cursor: pointer;
-    z-index: 3;
-    transition: transform 0.15s, border-color 0.2s;
-  }
-  .char-card .fav-btn:active { transform: scale(0.85); }
-  .char-card .fav-btn.active { border-color: var(--accent-pink); background: rgba(255,92,200,0.2); }
-  .char-card .fav-btn.active::after { content: ''; position: absolute; inset: -3px; border-radius: 50%; border: 1px solid var(--accent-pink); animation: favPing 1.5s ease-out infinite; }
-  @keyframes favPing { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }
-
-  /* Sell-back modal variant */
-  .modal .sell-price { color: var(--accent-gold); font-size: 17px; font-weight: 800; }
-  .modal .sell-note { font-size: 11px; color: var(--text-dim); margin-top: -8px; margin-bottom: 14px; }
-  .modal.sell .modal-portrait { border-color: var(--accent-gold); }
-  .modal.sell .modal-title { color: var(--accent-gold); }
-
-  /* ============================================================
-     PART 3 — TOP / LEADERBOARD
-     ============================================================ */
-  .podium {
-    display: grid; grid-template-columns: 1fr 1fr 1fr;
-    align-items: end; gap: 8px;
-    margin-bottom: 18px; padding: 0 4px;
-  }
-  .podium-step {
-    background: var(--bg-card);
-    border: 1px solid var(--border-soft);
-    border-radius: var(--r-md);
-    padding: 14px 8px;
-    text-align: center;
-    position: relative;
-    animation: podiumRise 0.7s cubic-bezier(0.16,1,0.3,1) backwards;
-  }
-  .podium-step:nth-child(1) { animation-delay: 0.3s; height: 120px; }
-  .podium-step:nth-child(2) {
-    height: 150px;
-    background: linear-gradient(180deg, rgba(255,216,107,0.18), var(--bg-card));
-    border-color: var(--accent-gold);
-    box-shadow: var(--glow-gold);
-    animation-delay: 0.1s;
-  }
-  .podium-step:nth-child(3) { animation-delay: 0.5s; height: 100px; }
-  @keyframes podiumRise {
-    from { transform: translateY(40px); opacity: 0; }
-    to   { transform: translateY(0); opacity: 1; }
-  }
-  .podium-crown {
-    position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
-    font-size: 30px; filter: drop-shadow(0 0 8px var(--accent-gold));
-    animation: crownFloat 2.5s ease-in-out infinite;
-  }
-  @keyframes crownFloat { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-4px); } }
-  .podium-avatar { font-size: 32px; margin-bottom: 4px; }
-  .podium-name { font-size: 12px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .podium-score { font-size: 11px; color: var(--accent-cyan); margin-top: 2px; font-weight: 700; }
-  .podium-step:nth-child(2) .podium-avatar { font-size: 42px; }
-  .podium-step:nth-child(2) .podium-name { font-size: 14px; }
-
-  .leaderboard { display: flex; flex-direction: column; gap: 8px; }
-  .lb-row {
-    display: flex; align-items: center; gap: 12px;
-    padding: 12px 14px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-soft);
-    border-radius: var(--r-md);
-    transition: transform 0.15s, border-color 0.2s;
-  }
-  .lb-row:active { transform: scale(0.98); }
-  .lb-row.me { border-color: var(--accent-cyan); background: linear-gradient(135deg, rgba(0,230,255,0.1), var(--bg-card)); box-shadow: 0 0 12px rgba(0,230,255,0.2); }
-  .lb-rank {
-    width: 32px; height: 32px; border-radius: 50%;
-    background: var(--bg-elev);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 800; color: var(--text-dim);
-    flex-shrink: 0;
-  }
-  .lb-row:nth-child(1) .lb-rank, .lb-row:nth-child(2) .lb-rank, .lb-row:nth-child(3) .lb-rank {
-    background: linear-gradient(135deg, var(--accent-gold), #ff8a3d); color: #2a1a00;
-  }
-  .lb-avatar { font-size: 28px; }
-  .lb-info { flex: 1; min-width: 0; }
-  .lb-name { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .lb-stats { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
-  .lb-score { font-size: 15px; font-weight: 800; color: var(--accent-cyan); }
-  .lb-row.me .lb-score { color: var(--accent-cyan); text-shadow: 0 0 8px var(--accent-cyan); }
-
-  /* Tab switcher (Top: Global / Friends) */
-  .tab-switcher {
-    display: flex; margin-bottom: 14px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-soft);
-    border-radius: var(--r-md);
-    padding: 4px;
-  }
-  .tab-switcher button {
-    flex: 1; padding: 9px; background: transparent;
-    border: none; color: var(--text-dim); font-weight: 700; font-size: 13px;
-    cursor: pointer; border-radius: 10px; transition: background 0.15s, color 0.15s;
-  }
-  .tab-switcher button.active { background: var(--bg-elev); color: var(--accent-cyan); }
-
-  /* ============================================================
-     PART 3 — PROFILE / SETTINGS
-     ============================================================ */
-  .profile-hero {
-    background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-elev) 100%);
-    border: 1px solid var(--border-mid);
-    border-radius: var(--r-lg);
-    padding: 24px 20px;
-    text-align: center;
-    margin-bottom: 18px;
-    position: relative; overflow: hidden;
-  }
-  .profile-hero::before {
-    content: ""; position: absolute; top: -50%; left: -50%;
-    width: 200%; height: 200%;
-    background: conic-gradient(from 0deg, transparent, rgba(179,92,255,0.18), transparent, rgba(0,230,255,0.18), transparent);
-    animation: modalSpin 8s linear infinite;
-    pointer-events: none;
-  }
-  .profile-hero > * { position: relative; z-index: 1; }
-  .profile-avatar-large {
-    width: 90px; height: 90px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
-    display: flex; align-items: center; justify-content: center;
-    font-size: 44px; margin: 0 auto 12px;
-    box-shadow: var(--glow-purple);
-    border: 3px solid rgba(255,255,255,0.1);
-  }
-  .profile-name-large { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
-  .profile-handle { font-size: 13px; color: var(--text-dim); margin-bottom: 14px; }
-  .profile-badges {
-    display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
-  }
-  .pbadge {
-    padding: 5px 12px;
-    background: rgba(0,230,255,0.12);
-    border: 1px solid rgba(0,230,255,0.3);
-    border-radius: var(--r-pill);
-    font-size: 11px; font-weight: 700; color: var(--accent-cyan);
-  }
-  .pbadge.gold { background: rgba(255,216,107,0.12); border-color: rgba(255,216,107,0.4); color: var(--accent-gold); }
-  .pbadge.pink { background: rgba(255,92,200,0.12); border-color: rgba(255,92,200,0.4); color: var(--accent-pink); }
-
-  .profile-grid-stats {
-    display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
-    margin-bottom: 18px;
-  }
-  .pg-stat {
-    background: var(--bg-card);
-    border: 1px solid var(--border-soft);
-    border-radius: var(--r-md);
-    padding: 14px 12px;
-  }
-  .pg-stat-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
-  .pg-stat-val { font-size: 20px; font-weight: 800; margin-top: 4px; }
-  .pg-stat-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
-
-  .settings-list { display: flex; flex-direction: column; gap: 8px; }
-  .settings-row {
-    display: flex; align-items: center; gap: 12px;
-    padding: 14px 16px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-soft);
-    border-radius: var(--r-md);
-    cursor: pointer;
-    transition: transform 0.1s, border-color 0.2s, background 0.2s;
-  }
-  .settings-row:active { transform: scale(0.98); }
-  .settings-row:hover { border-color: var(--border-mid); background: var(--bg-elev); }
-  .settings-icon {
-    width: 38px; height: 38px; border-radius: 50%;
-    background: var(--bg-elev);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px; flex-shrink: 0;
-    transition: transform 0.3s;
-  }
-  .settings-row:hover .settings-icon { transform: rotate(15deg) scale(1.1); }
-  .settings-text { flex: 1; min-width: 0; }
-  .settings-label { font-size: 14px; font-weight: 700; }
-  .settings-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
-  .settings-arrow { color: var(--text-faint); font-size: 18px; }
-
-  /* Toggle switch */
-  .toggle {
-    width: 42px; height: 24px; border-radius: 999px;
-    background: var(--bg-elev); border: 1px solid var(--border-soft);
-    position: relative; cursor: pointer;
-    transition: background 0.2s;
-  }
-  .toggle::after {
-    content: ""; position: absolute; top: 2px; left: 2px;
-    width: 18px; height: 18px; border-radius: 50%;
-    background: var(--text-dim);
-    transition: transform 0.2s cubic-bezier(0.16,1,0.3,1), background 0.2s;
-  }
-  .toggle.on { background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); border-color: transparent; }
-  .toggle.on::after { transform: translateX(18px); background: white; }
-
-
-
-
-  /* ============================================================
-     PART 4 — P2P + EVENTS + GAMES + SHOP + FRIENDS
-     ============================================================ */
-
-  /* 🤝 P2P Trade */
-  .trade-list { display: flex; flex-direction: column; gap: 10px; }
-  .trade-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-soft);
-    border-radius: var(--r-md);
-    padding: 14px;
-    display: flex; align-items: center; gap: 12px;
-    transition: transform 0.15s, border-color 0.2s;
-  }
-  .trade-card:active { transform: scale(0.98); }
-  .trade-card:hover { border-color: var(--border-mid); }
-  .trade-avatar { font-size: 32px; flex-shrink: 0; }
-  .trade-info { flex: 1; min-width: 0; }
-  .trade-user { font-size: 14px; font-weight: 700; }
-  .trade-offer { font-size: 12px; color: var(--text-dim); margin-top: 3px; }
-  .trade-offer .arrow { color: var(--accent-cyan); margin: 0 4px; }
-  .trade-card-mini { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
-  .trade-mini { font-size: 22px; padding: 3px 6px; background: var(--bg-elev); border-radius: 6px; }
-  .trade-status {
-    padding: 4px 10px; border-radius: var(--r-pill);
-    font-size: 10px; font-weight: 800; text-transform: uppercase;
-    flex-shrink: 0;
-  }
-  .trade-status.pending { background: rgba(255,216,107,0.2); color: var(--accent-gold); }
-  .trade-status.mine { background: rgba(0,230,255,0.2); color: var(--accent-cyan); }
-  .trade-status.done { background: rgba(179,92,255,0.2); color: var(--accent-purple); }
-
-  .fab {
-    position: fixed; bottom: calc(110px + env(safe-area-inset-bottom, 0px)); right: 18px;
-    width: 56px; height: 56px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
-    color: white; border: none; font-size: 24px;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 8px 24px rgba(179,92,255,0.5);
-    cursor: pointer; z-index: 35;
-    transition: transform 0.2s cubic-bezier(0.16,1,0.3,1);
-  }
-  .fab:active { transform: scale(0.88) rotate(15deg); }
-  .fab::before { content: ""; position: absolute; inset: -4px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); opacity: 0.4; z-index: -1; animation: fabPulse 2s ease-in-out infinite; }
-  @keyframes fabPulse { 0%,100% { transform: scale(1); opacity: 0.4; } 50% { transform: scale(1.2); opacity: 0; } }
-
-  /* 🎉 Events banner */
-  .event-banner {
-    background: linear-gradient(135deg, rgba(255,92,200,0.18), rgba(179,92,255,0.12)), var(--bg-card);
-    border: 1.5px solid var(--accent-pink);
-    border-radius: var(--r-lg);
-    padding: 20px;
-    margin-bottom: 14px;
-    position: relative; overflow: hidden;
-    box-shadow: 0 0 20px rgba(255,92,200,0.25);
-  }
-  .event-banner::before {
-    content: ""; position: absolute; top: 0; left: -100%;
-    width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    animation: sweep 4s ease-in-out infinite;
-  }
-  .event-banner::after { content: "🎉"; position: absolute; right: -10px; bottom: -25px; font-size: 100px; opacity: 0.12; transform: rotate(-15deg); }
-  .event-tag { display: inline-block; padding: 3px 10px; background: var(--accent-pink); color: white; border-radius: var(--r-pill); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-  .event-title { font-size: 18px; font-weight: 800; margin: 8px 0 4px; }
-  .event-desc { font-size: 12px; color: var(--text-dim); margin-bottom: 14px; }
-  .event-timer { display: flex; gap: 6px; margin-bottom: 14px; }
-  .event-timer-block { flex: 1; text-align: center; padding: 8px; background: rgba(7,4,15,0.5); border-radius: var(--r-sm); }
-  .event-timer-num { font-size: 18px; font-weight: 800; color: var(--accent-cyan); }
-  .event-timer-label { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
-  .event-join { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple)); color: white; border: none; border-radius: var(--r-md); font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 4px 14px rgba(255,92,200,0.4); position: relative; z-index: 1; }
-  .event-join:active { transform: scale(0.97); }
-
-  .event-list { display: flex; flex-direction: column; gap: 10px; }
-  .event-row { display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: var(--r-md); transition: transform 0.15s; }
-  .event-row:active { transform: scale(0.98); }
-  .event-emoji { width: 48px; height: 48px; border-radius: 50%; background: var(--bg-elev); display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
-  .event-row-info { flex: 1; min-width: 0; }
-  .event-row-title { font-size: 14px; font-weight: 700; }
-  .event-row-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
-  .event-row-reward { padding: 4px 10px; background: rgba(255,216,107,0.2); color: var(--accent-gold); border-radius: var(--r-pill); font-size: 11px; font-weight: 800; }
-
-  /* 🎮 Games */
-  .games-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  .game-tile {
-    background: var(--bg-card);
-    border: 1px solid var(--border-soft);
-    border-radius: var(--r-md);
-    padding: 18px 14px;
-    text-align: center;
-    cursor: pointer;
-    transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s;
-    position: relative; overflow: hidden;
-  }
-  .game-tile:active { transform: scale(0.96); }
-  .game-tile:hover { border-color: var(--border-mid); box-shadow: var(--glow-purple); }
-  .game-tile.locked { opacity: 0.5; }
-  .game-tile.locked::after { content: "🔒"; position: absolute; top: 8px; right: 8px; font-size: 14px; }
-  .game-tile-icon { font-size: 48px; margin-bottom: 8px; animation: bounce 3s ease-in-out infinite; }
-  .game-tile-title { font-size: 14px; font-weight: 800; }
-  .game-tile-sub { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
-  .game-tile-reward { display: inline-block; margin-top: 8px; padding: 3px 9px; background: rgba(255,216,107,0.2); color: var(--accent-gold); border-radius: var(--r-pill); font-size: 10px; font-weight: 800; }
-
-  /* 🛍 Shop */
-  .shop-banner { background: linear-gradient(135deg, rgba(0,230,255,0.15), rgba(179,92,255,0.1)), var(--bg-card); border: 1.5px solid var(--accent-cyan); border-radius: var(--r-lg); padding: 18px; margin-bottom: 14px; display: flex; align-items: center; gap: 14px; box-shadow: var(--glow-cyan); }
-  .shop-banner-icon { font-size: 44px; }
-  .shop-banner-info { flex: 1; }
-  .shop-banner-title { font-size: 16px; font-weight: 800; }
-  .shop-banner-sub { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
-
-  .shop-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  .shop-item {
-    background: var(--bg-card);
-    border: 1px solid var(--border-soft);
-    border-radius: var(--r-md);
-    padding: 14px;
-    text-align: center;
-    transition: transform 0.15s, border-color 0.2s;
-  }
-  .shop-item:active { transform: scale(0.96); }
-  .shop-item:hover { border-color: var(--border-mid); }
-  .shop-item-emoji { font-size: 48px; margin-bottom: 8px; }
-  .shop-item-name { font-size: 13px; font-weight: 700; }
-  .shop-item-desc { font-size: 10px; color: var(--text-dim); margin-top: 3px; min-height: 24px; }
-  .shop-buy {
-    margin-top: 10px; width: 100%; padding: 9px;
-    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
-    color: white; border: none; border-radius: var(--r-md);
-    font-weight: 800; font-size: 12px; cursor: pointer;
-  }
-  .shop-buy:active { transform: scale(0.95); }
-  .shop-buy:disabled { opacity: 0.4; cursor: not-allowed; }
-  .shop-buy-price { display: inline-block; margin-left: 4px; }
-
-  /* 👥 Friends */
-  .friends-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
-  .friends-tab { flex: 1; padding: 9px; background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: var(--r-md); font-size: 12px; font-weight: 600; color: var(--text-dim); text-align: center; cursor: pointer; }
-  .friends-tab.active { background: var(--bg-elev); color: var(--accent-cyan); border-color: var(--accent-cyan); }
-
-  .friend-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: var(--r-md); margin-bottom: 8px; transition: transform 0.15s; }
-  .friend-row:active { transform: scale(0.98); }
-  .friend-avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
-  .friend-info { flex: 1; min-width: 0; }
-  .friend-name { font-size: 14px; font-weight: 700; }
-  .friend-status { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
-  .friend-status.online { color: #4ade80; }
-  .friend-action { padding: 7px 12px; background: var(--bg-elev); border: 1px solid var(--border-soft); border-radius: var(--r-pill); font-size: 11px; font-weight: 700; color: var(--accent-cyan); cursor: pointer; }
-  .friend-action:active { transform: scale(0.92); }
-
-  ﹤!-- ============================================================
-       🤝 P2P TRADE
-       ============================================================ --﹥
-
+:root {
+  --bg-deep: #07040f;
+  --bg-mid: #11091f;
+  --bg-card: #1a1132;
+  --bg-elev: #261a4a;
+  --accent-cyan: #00e6ff;
+  --accent-purple: #b35cff;
+  --accent-pink: #ff5cc8;
+  --accent-gold: #ffd86b;
+  --accent-astrite: #7ad7ff;
+  --text-main: #f3eaff;
+  --text-dim: #a89cc8;
+  --text-faint: #6b6080;
+  --border-soft: rgba(179, 92, 255, 0.18);
+  --border-mid: rgba(179, 92, 255, 0.38);
+  --glow-purple: 0 0 24px rgba(179, 92, 255, 0.45);
+  --glow-cyan: 0 0 18px rgba(0, 230, 255, 0.5);
+  --glow-gold: 0 0 22px rgba(255, 216, 107, 0.55);
+  --r-sm: 8px; --r-md: 14px; --r-lg: 22px; --r-pill: 999px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "SF Pro Display", system-ui, sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg-deep);color:var(--text-main);font-family:var(--font);min-height:100vh;overflow-x:hidden;user-select:none}
+body{
+  background:
+    radial-gradient(900px 700px at 80% -10%,rgba(179,92,255,.18),transparent 60%),
+    radial-gradient(700px 500px at -10% 50%,rgba(0,230,255,.08),transparent 60%),
+    linear-gradient(180deg,var(--bg-deep) 0%,var(--bg-mid) 100%);
+  padding-bottom:calc(92px + env(safe-area-inset-bottom,0px));
+  padding-top:env(safe-area-inset-top,0px);
+}
+body::before{
+  content:"";position:fixed;inset:0;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%,rgba(255,255,255,.5),transparent),
+    radial-gradient(1px 1px at 70% 80%,rgba(0,230,255,.4),transparent),
+    radial-gradient(1px 1px at 40% 60%,rgba(255,92,200,.4),transparent),
+    radial-gradient(1px 1px at 85% 20%,rgba(255,216,107,.4),transparent),
+    radial-gradient(1px 1px at 10% 75%,rgba(255,255,255,.3),transparent);
+  pointer-events:none;z-index:0;
+  animation:drift 60s linear infinite;
+}
+@keyframes drift{from{transform:translateY(0)}to{transform:translateY(-50px)}}
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(7,4,15,.78);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid var(--border-soft)}
+.topbar .title{font-size:18px;font-weight:800;background:linear-gradient(135deg,var(--accent-cyan),var(--accent-purple) 55%,var(--accent-pink));-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:.5px;animation:shimmer 3s ease-in-out infinite}
+@keyframes shimmer{0%,100%{filter:brightness(1)}50%{filter:brightness(1.25)}}
+.balance-pill{display:flex;align-items:center;gap:6px;padding:7px 14px;background:linear-gradient(135deg,rgba(122,215,255,.18),rgba(0,230,255,.04));border:1px solid rgba(122,215,255,.45);border-radius:var(--r-pill);font-size:14px;font-weight:800;color:var(--accent-astrite);box-shadow:var(--glow-cyan);transition:transform .15s;cursor:pointer}
+.balance-pill:active{transform:scale(.94)}
+.balance-pill .icon{font-size:16px;animation:spin 8s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.section{display:none;padding:16px;animation:fadeUp .4s cubic-bezier(.16,1,.3,1);position:relative;z-index:1}
+.section.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.section-title{font-size:20px;font-weight:800}
+.section-subtitle{font-size:12px;color:var(--text-dim);margin-top:2px}
+.profile-card{background:linear-gradient(135deg,var(--bg-card) 0%,var(--bg-elev) 100%);border:1px solid var(--border-mid);border-radius:var(--r-lg);padding:20px;margin-bottom:18px;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.profile-card::before{content:"";position:absolute;top:-50%;right:-30%;width:240px;height:240px;background:radial-gradient(circle,rgba(179,92,255,.3),transparent 60%);pointer-events:none;animation:floatGlow 6s ease-in-out infinite}
+@keyframes floatGlow{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-20px,20px) scale(1.1)}}
+.profile-card::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,transparent 50%,rgba(255,255,255,.03) 50%);pointer-events:none}
+.profile-row{display:flex;align-items:center;gap:14px;position:relative;z-index:1}
+.avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--accent-purple),var(--accent-pink));display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:var(--glow-purple);flex-shrink:0;animation:avatarPulse 3s ease-in-out infinite}
+@keyframes avatarPulse{0%,100%{box-shadow:var(--glow-purple)}50%{box-shadow:0 0 32px rgba(179,92,255,.7)}}
+.profile-info{flex:1;min-width:0}
+.profile-name{font-size:17px;font-weight:800}
+.profile-uid{font-size:12px;color:var(--text-dim);margin-top:2px}
+.profile-stats{display:flex;gap:18px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border-soft);position:relative;z-index:1}
+.stat{flex:1;text-align:center}
+.stat-num{font-size:18px;font-weight:800;color:var(--accent-cyan)}
+.stat-label{font-size:11px;color:var(--text-dim);margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+.daily-banner{background:linear-gradient(135deg,rgba(255,216,107,.15),rgba(255,92,200,.1)),var(--bg-card);border:1.5px solid var(--accent-gold);border-radius:var(--r-lg);padding:18px;margin-bottom:18px;display:flex;align-items:center;gap:14px;box-shadow:var(--glow-gold);position:relative;overflow:hidden}
+.daily-banner::before{content:"";position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);animation:sweep 3s ease-in-out infinite}
+@keyframes sweep{to{left:100%}}
+.daily-banner::after{content:"✨";position:absolute;right:-10px;bottom:-20px;font-size:80px;opacity:.1;transform:rotate(15deg)}
+.daily-icon{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent-gold),#ff8a3d);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;box-shadow:0 4px 16px rgba(255,216,107,.4);animation:bounce 2s ease-in-out infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.daily-text{flex:1;position:relative;z-index:1}
+.daily-title{font-size:16px;font-weight:800}
+.daily-sub{font-size:12px;color:var(--text-dim);margin-top:2px}
+.daily-streak{display:inline-block;margin-top:6px;padding:3px 10px;background:rgba(255,92,200,.15);border:1px solid rgba(255,92,200,.4);border-radius:var(--r-pill);font-size:11px;color:var(--accent-pink);font-weight:700}
+.claim-btn{padding:10px 18px;background:linear-gradient(135deg,var(--accent-gold),#ff8a3d);color:#2a1a00;border:none;border-radius:var(--r-pill);font-weight:800;font-size:13px;cursor:pointer;box-shadow:0 4px 14px rgba(255,216,107,.5);transition:transform .1s;position:relative;z-index:1}
+.claim-btn:active{transform:scale(.93)}
+.claim-btn:disabled{opacity:.5;cursor:not-allowed}
+.claim-btn.claimed{background:var(--bg-elev);color:var(--text-dim);box-shadow:none}
+.feature-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.feature-tile{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:var(--r-md);padding:18px 14px;text-align:center;cursor:pointer;transition:transform .15s cubic-bezier(.16,1,.3,1),border-color .2s,box-shadow .2s;position:relative;overflow:hidden}
+.feature-tile::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(179,92,255,.15),transparent 70%);opacity:0;transition:opacity .2s}
+.feature-tile:hover::before,.feature-tile:active::before{opacity:1}
+.feature-tile:active{transform:scale(.96)}
+.feature-tile:hover{border-color:var(--border-mid);box-shadow:var(--glow-purple)}
+.feature-icon{font-size:36px;margin-bottom:8px;position:relative}
+.feature-label{font-size:13px;font-weight:700;position:relative}
+.feature-sub{font-size:11px;color:var(--text-dim);margin-top:2px;position:relative}
+.feature-tile.locked .feature-icon{filter:grayscale(.5) brightness(.8)}
+.feature-badge{display:inline-block;margin-top:6px;padding:2px 8px;background:rgba(255,92,200,.18);border:1px solid rgba(255,92,200,.4);border-radius:var(--r-pill);font-size:9px;color:var(--accent-pink);font-weight:700;text-transform:uppercase}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:rgba(7,4,15,.92);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-top:1px solid var(--border-soft);z-index:40;padding:6px 4px calc(env(safe-area-inset-bottom,0px) + 6px)}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;background:transparent;border:none;color:var(--text-faint);font-size:10px;font-weight:600;cursor:pointer;border-radius:var(--r-sm);transition:color .2s,transform .1s;position:relative}
+.nav-btn .nav-icon{font-size:22px;transition:transform .2s cubic-bezier(.16,1,.3,1)}
+.nav-btn.active{color:var(--accent-cyan)}
+.nav-btn.active .nav-icon{transform:translateY(-2px) scale(1.15);filter:drop-shadow(0 0 8px var(--accent-cyan))}
+.nav-btn:active .nav-icon{transform:scale(.85)}
+.nav-btn::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:0;height:2px;background:linear-gradient(90deg,var(--accent-cyan),var(--accent-purple));border-radius:0 0 4px 4px;transition:width .3s cubic-bezier(.16,1,.3,1)}
+.nav-btn.active::before{width:30px}
+.toast{position:fixed;bottom:110px;left:50%;transform:translateX(-50%) translateY(20px);padding:11px 22px;background:var(--bg-elev);border:1px solid var(--border-mid);border-radius:var(--r-pill);font-size:13px;font-weight:600;box-shadow:0 8px 28px rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .3s,transform .3s cubic-bezier(.16,1,.3,1);z-index:200;max-width:84%;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{border-color:var(--accent-cyan);color:var(--accent-cyan)}
+.toast.error{border-color:var(--accent-pink);color:var(--accent-pink)}
+.toast.gold{border-color:var(--accent-gold);color:var(--accent-gold)}
+.ribbon-burst{position:fixed;inset:0;pointer-events:none;z-index:300;display:none}
+.ribbon-burst.show{display:block}
+.ribbon{position:absolute;width:12px;height:12px;border-radius:50%;animation:ribbonFall 1.4s cubic-bezier(0.16,1,0.3,1) forwards}
+@keyframes ribbonFall{0%{transform:translate(0,0) scale(0) rotate(0);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1.4) rotate(720deg);opacity:0}}
+.empty{text-align:center;padding:40px 20px;color:var(--text-dim)}
+.empty-icon{font-size:48px;margin-bottom:10px;opacity:.5}
+.empty-text{font-size:14px}
+.char-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.char-grid.list{grid-template-columns:1fr}
+.char-card{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:var(--r-md);padding:14px;text-align:center;cursor:pointer;position:relative;overflow:hidden;transition:transform .15s,border-color .2s}
+.char-card:active{transform:scale(.96)}
+.char-card:hover{border-color:var(--border-mid)}
+.char-card.owned{opacity:.5}
+.char-card.owned::after{content:"✓ OWNED";position:absolute;top:8px;right:8px;padding:3px 8px;background:rgba(0,230,255,.2);border:1px solid var(--accent-cyan);color:var(--accent-cyan);border-radius:var(--r-pill);font-size:9px;font-weight:800}
+.char-price{position:absolute;top:8px;right:8px;padding:4px 10px;background:rgba(7,4,15,.8);border:1px solid var(--accent-gold);border-radius:var(--r-pill);font-size:11px;font-weight:800;color:var(--accent-gold);z-index:2}
+.char-portrait{font-size:64px;margin:14px auto 10px;width:90px;height:90px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:linear-gradient(135deg,rgba(179,92,255,.12),rgba(0,230,255,.06));border:2px solid var(--border-soft)}
+.char-info{margin-top:8px}
+.char-name{font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.char-anime{font-size:11px;color:var(--text-dim);margin-top:2px}
+.char-rarity-tag{display:inline-block;margin-top:6px;padding:2px 8px;border-radius:var(--r-pill);font-size:9px;font-weight:800;letter-spacing:.5px}
+.tag-COMMON{background:rgba(138,138,138,.2);color:#aaa}
+.tag-RARE{background:rgba(74,138,255,.2);color:#4a8aff}
+.tag-EPIC{background:rgba(179,92,255,.2);color:var(--accent-purple)}
+.tag-LEGENDARY{background:rgba(255,216,107,.2);color:var(--accent-gold);border:1px solid rgba(255,216,107,.4)}
+.tag-MYTHIC{background:rgba(255,92,200,.2);color:var(--accent-pink);border:1px solid rgba(255,92,200,.4)}
+.tag-CELESTIA_X{background:rgba(0,230,255,.2);color:var(--accent-cyan);border:1px solid rgba(0,230,255,.4);animation:shimmer 2s ease-in-out infinite}
+.tag-VORTEX{background:linear-gradient(135deg,rgba(255,92,200,.3),rgba(0,230,255,.3));color:#fff;border:1px solid var(--accent-pink);animation:shimmer 1.5s ease-in-out infinite}
+.rarity-COMMON{box-shadow:none}
+.rarity-RARE{box-shadow:0 0 12px rgba(74,138,255,.3)}
+.rarity-EPIC{box-shadow:0 0 16px rgba(179,92,255,.4)}
+.rarity-LEGENDARY{box-shadow:0 0 20px rgba(255,216,107,.5);border-color:rgba(255,216,107,.4)!important}
+.rarity-MYTHIC{box-shadow:0 0 24px rgba(255,92,200,.55);border-color:rgba(255,92,200,.5)!important}
+.rarity-CELESTIA_X{box-shadow:0 0 28px rgba(0,230,255,.6);border-color:rgba(0,230,255,.5)!important;animation:avatarPulse 2.5s ease-in-out infinite}
+.rarity-VORTEX{box-shadow:0 0 32px rgba(255,92,200,.7),0 0 16px rgba(0,230,255,.5);border-color:rgba(255,92,200,.7)!important;animation:avatarPulse 1.8s ease-in-out infinite}
+.market-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:8px;flex-wrap:wrap}
+.market-info{font-size:12px;color:var(--text-dim)}
+.market-info b{color:var(--accent-cyan)}
+.refresh-btn{display:flex;align-items:center;gap:5px;padding:8px 14px;background:linear-gradient(135deg,var(--accent-cyan),var(--accent-purple));color:#fff;border:none;border-radius:var(--r-pill);font-weight:800;font-size:12px;cursor:pointer;box-shadow:0 4px 12px rgba(0,230,255,.3);transition:transform .15s}
+.refresh-btn:active{transform:scale(.94)}
+.refresh-btn.cooldown{background:var(--bg-elev);color:var(--text-dim);box-shadow:none;cursor:not-allowed}
+.refresh-btn .refresh-icon{font-size:14px;display:inline-block}
+.refresh-btn.spinning .refresh-icon{animation:spin .6s linear}
+.grid-toggle{display:flex;background:var(--bg-card);border:1px solid var(--border-soft);border-radius:var(--r-pill);padding:3px}
+.grid-toggle button{width:32px;height:28px;background:transparent;border:none;color:var(--text-dim);font-size:14px;cursor:pointer;border-radius:var(--r-pill);transition:background .15s,color .15s}
+.grid-toggle button.active{background:var(--bg-elev);color:var(--accent-cyan)}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;animation:fadeUp .25s}
+.modal-bg.show{display:flex}
+.modal{background:var(--bg-card);border:1px solid var(--border-mid);border-radius:var(--r-lg);padding:24px;width:100%;max-width:380px;position:relative;animation:modalPop .35s cubic-bezier(.16,1,.3,1);box-shadow:0 20px 60px rgba(0,0,0,.7)}
+@keyframes modalPop{from{transform:scale(.85) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:4px}
+.modal-sub{font-size:12px;color:var(--text-dim);margin-bottom:16px}
+.modal-portrait{font-size:80px;width:120px;height:120px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:linear-gradient(135deg,rgba(179,92,255,.12),rgba(0,230,255,.06));border:2px solid var(--border-soft);margin:0 auto 16px;animation:avatarPulse 2s ease-in-out infinite}
+.modal-details{background:rgba(7,4,15,.4);border-radius:var(--r-md);padding:12px;margin-bottom:16px}
+.modal-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px}
+.modal-row span:first-child{color:var(--text-dim)}
+.modal-row span:last-child{font-weight:700;text-align:right;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.price-val{color:var(--accent-gold)!important}
+.balance-val{color:var(--accent-cyan)!important}
+.modal-buttons{display:flex;gap:10px}
+.btn-primary,.btn-secondary{flex:1;padding:12px;border:none;border-radius:var(--r-md);font-weight:800;font-size:14px;cursor:pointer;transition:transform .1s}
+.btn-primary{background:linear-gradient(135deg,var(--accent-cyan),var(--accent-purple));color:#fff;box-shadow:0 4px 14px rgba(0,230,255,.3)}
+.btn-secondary{background:var(--bg-elev);color:var(--text-main);border:1px solid var(--border-soft)}
+.btn-primary:active,.btn-secondary:active{transform:scale(.96)}
+.modal.success .modal-portrait{animation:avatarPulse 1s ease-in-out infinite}
 </style>
 </head>
 <body>
 
-
-<!-- ============================================================
-     📱 TOP BAR
-     ============================================================ -->
+<!-- TOP BAR -->
 <div class="topbar">
   <div class="title">✨ Summon Collection</div>
-  <div class="balance-pill" onclick="haptic('light'); showToast('Æ balance is synced from bot', 'success')">
+  <div class="balance-pill" onclick="haptic('light')">
     <span class="icon">Æ</span>
-    <span id="balance">12,450</span>
+    <span id="balance">0</span>
   </div>
 </div>
 
-<!-- ============================================================
-     🏠 HOME
-     ============================================================ -->
+<!-- TOAST + BURST -->
+<div class="toast" id="toast"></div>
+<div class="ribbon-burst" id="ribbonBurst"></div>
+
+<!-- 🏠 HOME -->
 <div class="section active" id="sec-home">
   <div class="profile-card">
     <div class="profile-row">
-      <div class="avatar">🦊</div>
+      <div class="avatar" id="homeAvatar">🦊</div>
       <div class="profile-info">
-        <div class="profile-name">Beast Gohan</div>
-        <div class="profile-uid">UID: 6265999542 · @Namichaaaaaan</div>
+        <div class="profile-name" id="homeName">Loading...</div>
+        <div class="profile-uid" id="homeUid">Connecting...</div>
       </div>
     </div>
     <div class="profile-stats">
-      <div class="stat"><div class="stat-num">127</div><div class="stat-label">Cards</div></div>
-      <div class="stat"><div class="stat-num">14</div><div class="stat-label">Pulls</div></div>
-      <div class="stat"><div class="stat-num">7 🔥</div><div class="stat-label">Streak</div></div>
+      <div class="stat"><div class="stat-num" id="homeCards">0</div><div class="stat-label">Cards</div></div>
+      <div class="stat"><div class="stat-num" id="homePulls">0</div><div class="stat-label">Pulls</div></div>
+      <div class="stat"><div class="stat-num" id="homeStreak">0 🔥</div><div class="stat-label">Streak</div></div>
     </div>
   </div>
 
@@ -776,8 +216,8 @@
     <div class="daily-icon">🎁</div>
     <div class="daily-text">
       <div class="daily-title">Daily Claim Ready!</div>
-      <div class="daily-sub">7-day streak bonus: +50% Æ</div>
-      <span class="daily-streak">🔥 7 days</span>
+      <div class="daily-sub" id="dailySub">+100 Æ base reward</div>
+      <span class="daily-streak" id="dailyStreak">🔥 0 days</span>
     </div>
     <button class="claim-btn" id="claimBtn" onclick="claimDaily()">CLAIM</button>
   </div>
@@ -790,106 +230,86 @@
   </div>
 
   <div class="feature-grid">
-    <div class="feature-tile" onclick="haptic('light'); navigate('market')">
+    <div class="feature-tile" onclick="haptic('light');navigate('market')">
       <div class="feature-icon">🛒</div>
       <div class="feature-label">Marketplace</div>
       <div class="feature-sub">10 new cards daily</div>
     </div>
-    <div class="feature-tile" onclick="haptic('light'); navigate('inventory')">
+    <div class="feature-tile" onclick="haptic('light');navigate('inventory')">
       <div class="feature-icon">🎒</div>
       <div class="feature-label">Inventory</div>
-      <div class="feature-sub">127 owned</div>
+      <div class="feature-sub" id="homeInvSub">0 owned</div>
     </div>
-    <div class="feature-tile" onclick="haptic('light'); showToast('P2P Trading — Coming soon', 'success')">
+    <div class="feature-tile" onclick="haptic('light');navigate('trade')">
       <div class="feature-icon">🤝</div>
       <div class="feature-label">P2P Trade</div>
       <div class="feature-sub">Trade with friends</div>
-      <div class="feature-badge">Soon</div>
     </div>
-    <div class="feature-tile" onclick="haptic('light'); showToast('Events — Coming soon', 'success')">
+    <div class="feature-tile" onclick="haptic('light');navigate('events')">
       <div class="feature-icon">🎉</div>
       <div class="feature-label">Events</div>
-      <div class="feature-sub">Limited drops</div>
-      <div class="feature-badge">Soon</div>
+      <div class="feature-sub">Live challenges</div>
+      <div class="feature-badge">Live</div>
     </div>
-    <div class="feature-tile" onclick="haptic('light'); showToast('Mini-Games — Coming soon', 'success')">
+    <div class="feature-tile" onclick="haptic('light');navigate('games')">
       <div class="feature-icon">🎮</div>
       <div class="feature-label">Games</div>
-      <div class="feature-sub">Earn Æ daily</div>
-      <div class="feature-badge">Soon</div>
+      <div class="feature-sub">Play & earn</div>
     </div>
-    <div class="feature-tile" onclick="haptic('light'); showToast('Premium Shop — Coming soon', 'success')">
-      <div class="feature-icon">💎</div>
+    <div class="feature-tile" onclick="haptic('light');navigate('shop')">
+      <div class="feature-icon">🛍</div>
       <div class="feature-label">Shop</div>
-      <div class="feature-sub">Boosters & packs</div>
-      <div class="feature-badge">Soon</div>
+      <div class="feature-sub">Boosts & bundles</div>
+    </div>
+    <div class="feature-tile" onclick="haptic('light');navigate('top')">
+      <div class="feature-icon">🏆</div>
+      <div class="feature-label">Leaderboard</div>
+      <div class="feature-sub">Top summoners</div>
+    </div>
+    <div class="feature-tile" onclick="haptic('light');navigate('friends')">
+      <div class="feature-icon">👥</div>
+      <div class="feature-label">Friends</div>
+      <div class="feature-sub" id="homeFriendsSub">0 online</div>
     </div>
   </div>
 </div>
 
-<!-- ============================================================
-     🧭 BOTTOM NAV
-     ============================================================ -->
-<div class="bottom-nav">
-  <button class="nav-btn active" data-sec="home" onclick="haptic('light'); navigate('home')">
-    <span class="nav-icon">🏠</span><span>Home</span>
-  </button>
-  <button class="nav-btn" data-sec="market" onclick="haptic('light'); navigate('market')">
-    <span class="nav-icon">🛒</span><span>Market</span>
-  </button>
-  <button class="nav-btn" data-sec="inventory" onclick="haptic('light'); navigate('inventory')">
-    <span class="nav-icon">🎒</span><span>Inventory</span>
-  </button>
-  <button class="nav-btn" data-sec="top" onclick="haptic('light'); navigate('top')">
-    <span class="nav-icon">🏆</span><span>Top</span>
-  </button>
-  <button class="nav-btn" data-sec="profile" onclick="haptic('light'); navigate('profile')">
-    <span class="nav-icon">👤</span><span>Profile</span>
-  </button>
-</div>
-
-<!-- ============================================================
-     🔔 TOAST + RIBBON CONTAINERS
-     ============================================================ -->
-<div class="toast" id="toast"></div>
-<div class="ribbon-burst" id="ribbonBurst"></div>
-
+<!-- 🛍 MARKET -->
 <div class="section" id="sec-market">
   <div class="section-header">
     <div>
       <div class="section-title">Marketplace</div>
-      <div class="section-subtitle">10 characters · refreshes in <b id="refreshTimer">04:32</b></div>
+      <div class="section-subtitle">10 featured characters</div>
     </div>
   </div>
-
   <div class="market-toolbar">
-    <div class="market-info">Showing <b>10</b> of 18 cards</div>
-    <button class="refresh-btn" id="refreshBtn" onclick="refreshMarket()">
-      <span class="refresh-icon">🔄</span> <span id="refreshLabel">Free</span>
-    </button>
-    <div class="grid-toggle">
-      <button id="grid2" class="active" onclick="setGrid(2)">▦</button>
-      <button id="grid1" onclick="setGrid(1)">☰</button>
+    <div class="market-info">Balance: <b><span id="marketBal">0</span> Æ</b></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div class="grid-toggle">
+        <button id="grid1" onclick="setGrid(1)">☰</button>
+        <button id="grid2" class="active" onclick="setGrid(2)">▦</button>
+      </div>
+      <button class="refresh-btn" id="refreshBtn" onclick="refreshMarket()">
+        <span class="refresh-icon">↻</span>
+        <span id="refreshLabel">Free</span>
+      </button>
     </div>
   </div>
-
   <div class="char-grid" id="charGrid"></div>
 </div>
 
-<!-- ============================================================
-     🛒 MODAL: CONFIRM PURCHASE
-     ============================================================ -->
+<!-- PURCHASE MODAL -->
 <div class="modal-bg" id="purchaseModal" onclick="if(event.target===this)closeModal()">
   <div class="modal" id="purchaseModalContent">
-    <div class="modal-title">Confirm Purchase</div>
-    <div class="modal-sub">You are about to summon this character</div>
-    <div class="modal-portrait" id="modalPortrait">🛒</div>
+    <div class="modal-portrait" id="modalPortrait">?</div>
+    <div class="modal-title" id="modalTitle">Confirm Purchase</div>
+    <div class="modal-sub">Add to your collection</div>
     <div class="modal-details">
-      <div class="modal-row"><span>Name</span><span id="modalName">—</span></div>
-      <div class="modal-row"><span>Anime</span><span id="modalAnime">—</span></div>
-      <div class="modal-row"><span>Rarity</span><span id="modalRarity">—</span></div>
-      <div class="modal-row"><span>Price</span><span class="price-val" id="modalPrice">—</span></div>
-      <div class="modal-row"><span>Your Balance</span><span class="balance-val" id="modalBalance">—</span></div>
+      <div class="modal-row"><span>Name</span><span id="modalName">-</span></div>
+      <div class="modal-row"><span>Anime</span><span id="modalAnime">-</span></div>
+      <div class="modal-row"><span>Rarity</span><span id="modalRarity">-</span></div>
+      <div class="modal-row"><span>Price</span><span class="price-val" id="modalPrice">0 Æ</span></div>
+      <div class="modal-row"><span>Your Balance</span><span class="balance-val" id="modalBalance">0 Æ</span></div>
     </div>
     <div class="modal-buttons">
       <button class="btn-secondary" onclick="closeModal()">Cancel</button>
@@ -897,632 +317,713 @@
     </div>
   </div>
 </div>
+
+<!-- SELL MODAL -->
+<div class="modal-bg" id="sellModal" onclick="if(event.target===this)closeSellModal()">
+  <div class="modal sell">
+    <div class="modal-portrait" id="sellPortrait">?</div>
+    <div class="modal-title" style="color:var(--accent-gold)">Sell Character</div>
+    <div class="modal-sub" id="sellSub">Get 50% of market price back</div>
+    <div class="modal-details">
+      <div class="modal-row"><span>Name</span><span id="sellName">-</span></div>
+      <div class="modal-row"><span>Anime</span><span id="sellAnime">-</span></div>
+      <div class="modal-row"><span>Rarity</span><span id="sellRarity">-</span></div>
+      <div class="modal-row"><span>Market Price</span><span class="price-val" id="sellMarket">0 Æ</span></div>
+      <div class="modal-row"><span>Refund (50%)</span><span class="price-val" id="sellPrice" style="font-size:16px">0 Æ</span></div>
+    </div>
+    <div class="modal-buttons">
+      <button class="btn-secondary" onclick="closeSellModal()">Cancel</button>
+      <button class="btn-primary" onclick="confirmSell()">Sell</button>
+    </div>
+  </div>
+</div>
+
+<!-- 📦 INVENTORY -->
 <div class="section" id="sec-inventory">
   <div class="section-header">
     <div>
       <div class="section-title">My Collection</div>
-      <div class="section-subtitle" id="invSubtitle">All your summoned heroes</div>
+      <div class="section-subtitle" id="invHeaderSub">0 characters</div>
     </div>
   </div>
-
   <div class="inv-summary">
     <div class="inv-stat total"><div class="inv-stat-num" id="invTotal">0</div><div class="inv-stat-label">Total</div></div>
     <div class="inv-stat value"><div class="inv-stat-num" id="invValue">0 Æ</div><div class="inv-stat-label">Value</div></div>
     <div class="inv-stat fav"><div class="inv-stat-num" id="invFav">0</div><div class="inv-stat-label">Favorites</div></div>
   </div>
-
-  <div class="inv-tabs">
+  <div class="inv-tabs" id="invTabs">
     <div class="inv-tab active" data-filter="ALL" onclick="setInvFilter('ALL')">All <span class="count" id="cnt-ALL">0</span></div>
-    <div class="inv-tab" data-filter="COMMON" onclick="setInvFilter('COMMON')">Common <span class="count" id="cnt-COMMON">0</span></div>
-    <div class="inv-tab" data-filter="RARE" onclick="setInvFilter('RARE')">Rare <span class="count" id="cnt-RARE">0</span></div>
-    <div class="inv-tab" data-filter="EPIC" onclick="setInvFilter('EPIC')">Epic <span class="count" id="cnt-EPIC">0</span></div>
+    <div class="inv-tab" data-filter="FAV" onclick="setInvFilter('FAV')">⭐ Fav <span class="count" id="cnt-FAV">0</span></div>
     <div class="inv-tab" data-filter="LEGENDARY" onclick="setInvFilter('LEGENDARY')">Legendary <span class="count" id="cnt-LEGENDARY">0</span></div>
     <div class="inv-tab" data-filter="MYTHIC" onclick="setInvFilter('MYTHIC')">Mythic <span class="count" id="cnt-MYTHIC">0</span></div>
+    <div class="inv-tab" data-filter="EPIC" onclick="setInvFilter('EPIC')">Epic <span class="count" id="cnt-EPIC">0</span></div>
+    <div class="inv-tab" data-filter="RARE" onclick="setInvFilter('RARE')">Rare <span class="count" id="cnt-RARE">0</span></div>
     <div class="inv-tab" data-filter="CELESTIA_X" onclick="setInvFilter('CELESTIA_X')">Celestia X <span class="count" id="cnt-CELESTIA_X">0</span></div>
     <div class="inv-tab" data-filter="VORTEX" onclick="setInvFilter('VORTEX')">Vortex <span class="count" id="cnt-VORTEX">0</span></div>
-    <div class="inv-tab" data-filter="FAV" onclick="setInvFilter('FAV')">★ Favorites</div>
   </div>
-
-  <div class="char-grid" id="invGrid">
-    <div class="empty"><div class="empty-icon">🎴</div><div class="empty-text">No cards yet. Visit the Marketplace!</div></div>
-  </div>
+  <div class="char-grid" id="invGrid"></div>
 </div>
 
-<!-- ============================================================
-     🛒 MODAL: SELL CARD
-     ============================================================ -->
-<div class="modal-bg" id="sellModal" onclick="if(event.target===this)closeSellModal()">
-  <div class="modal sell" id="sellModalContent">
-    <div class="modal-title">Sell Card</div>
-    <div class="modal-sub">Get 50% of market value back</div>
-    <div class="modal-portrait" id="sellPortrait">🃏</div>
-    <div class="sell-note">Refund: <span class="sell-price" id="sellPrice">—</span></div>
-    <div class="modal-details">
-      <div class="modal-row"><span>Name</span><span id="sellName">—</span></div>
-      <div class="modal-row"><span>Anime</span><span id="sellAnime">—</span></div>
-      <div class="modal-row"><span>Rarity</span><span id="sellRarity">—</span></div>
-      <div class="modal-row"><span>Market Value</span><span id="sellMarket">—</span></div>
-    </div>
-    <div class="modal-buttons">
-      <button class="btn-secondary" onclick="closeSellModal()">Keep</button>
-      <button class="btn-primary" id="confirmSellBtn" onclick="confirmSell()">Sell for Æ</button>
-    </div>
-  </div>
-</div>
-
-<!-- ============================================================
-     🏆 TOP / LEADERBOARD
-     ============================================================ -->
+<!-- 🏆 TOP -->
 <div class="section" id="sec-top">
   <div class="section-header">
     <div>
       <div class="section-title">Leaderboard</div>
-      <div class="section-subtitle">Top summoners this season</div>
+      <div class="section-subtitle">Top summoners worldwide</div>
     </div>
   </div>
-
   <div class="tab-switcher">
-    <button class="active" onclick="setLbTab('global', this)">🌍 Global</button>
-    <button onclick="setLbTab('friends', this)">👥 Friends</button>
-    <button onclick="setLbTab('guild', this)">🛡️ Guild</button>
+    <button class="active" onclick="setLbTab('global',this)">🌍 Global</button>
+    <button onclick="setLbTab('friends',this)">👥 Friends</button>
+    <button onclick="setLbTab('guild',this)">⚔ Guilds</button>
   </div>
-
   <div class="podium" id="podium"></div>
-
   <div class="leaderboard" id="leaderboard"></div>
 </div>
 
-<!-- ============================================================
-     👤 PROFILE / SETTINGS
-     ============================================================ -->
-<div class="section" id="sec-profile">
-  <div class="profile-hero">
-    <div class="profile-avatar-large">🦊</div>
-    <div class="profile-name-large">Beast Gohan</div>
-    <div class="profile-handle">@Namichaaaaaan · UID 6265999542</div>
-    <div class="profile-badges">
-      <span class="pbadge">🔥 7-day Streak</span>
-      <span class="pbadge gold">👑 Veteran</span>
-      <span class="pbadge pink">💎 Top 100</span>
-    </div>
-  </div>
-
+<!-- 🤝 TRADE -->
+<div class="section" id="sec-trade">
   <div class="section-header">
     <div>
-      <div class="section-title">Stats</div>
+      <div class="section-title">P2P Trades</div>
+      <div class="section-subtitle">Trade with other players</div>
     </div>
   </div>
+  <div class="trade-list" id="tradeList"></div>
+  <button class="fab" onclick="haptic('light');showToast('Create trade — coming soon','success')">+</button>
+</div>
 
-  <div class="profile-grid-stats">
-    <div class="pg-stat">
-      <div class="pg-stat-label">Total Cards</div>
-      <div class="pg-stat-val" style="color: var(--accent-cyan);" id="profTotal">0</div>
-      <div class="pg-stat-sub">+2 this week</div>
-    </div>
-    <div class="pg-stat">
-      <div class="pg-stat-label">Collection Value</div>
-      <div class="pg-stat-val" style="color: var(--accent-gold);" id="profValue">0 Æ</div>
-      <div class="pg-stat-sub">sum of owned</div>
-    </div>
-    <div class="pg-stat">
-      <div class="pg-stat-label">Pulls</div>
-      <div class="pg-stat-val" style="color: var(--accent-purple);" id="profPulls">0</div>
-      <div class="pg-stat-sub">all-time</div>
-    </div>
-    <div class="pg-stat">
-      <div class="pg-stat-label">Achievements</div>
-      <div class="pg-stat-val" style="color: var(--accent-pink);" id="profAch">12 / 28</div>
-      <div class="pg-stat-sub">43% complete</div>
-    </div>
-  </div>
-
+<!-- 🎉 EVENTS -->
+<div class="section" id="sec-events">
   <div class="section-header">
     <div>
-      <div class="section-title">Settings</div>
+      <div class="section-title">Events</div>
+      <div class="section-subtitle">Limited-time challenges</div>
     </div>
   </div>
-
-  <div class="settings-list">
-    <div class="settings-row" onclick="haptic('light'); showToast('Account settings coming soon', 'success')">
-      <div class="settings-icon">👤</div>
-      <div class="settings-text">
-        <div class="settings-label">Account</div>
-        <div class="settings-sub">Username, email, password</div>
-      </div>
-      <div class="settings-arrow">›</div>
+  <div class="event-banner">
+    <span class="event-tag">🔥 Featured</span>
+    <div class="event-title">Celestial Summon Storm</div>
+    <div class="event-desc">Summon 5 LEGENDARY+ characters to earn exclusive rewards</div>
+    <div class="event-timer">
+      <div class="event-timer-block"><div class="event-timer-num" id="evDays">02</div><div class="event-timer-label">Days</div></div>
+      <div class="event-timer-block"><div class="event-timer-num" id="evHours">14</div><div class="event-timer-label">Hours</div></div>
+      <div class="event-timer-block"><div class="event-timer-num" id="evMins">32</div><div class="event-timer-label">Min</div></div>
+      <div class="event-timer-block"><div class="event-timer-num" id="evSecs">48</div><div class="event-timer-label">Sec</div></div>
     </div>
-    <div class="settings-row" onclick="haptic('light'); showToast('Notifications updated', 'success')">
-      <div class="settings-icon">🔔</div>
-      <div class="settings-text">
-        <div class="settings-label">Notifications</div>
-        <div class="settings-sub">Daily reminders, spawns, trades</div>
-      </div>
-      <div class="toggle on" onclick="event.stopPropagation(); this.classList.toggle('on'); haptic('light');"></div>
-    </div>
-    <div class="settings-row" onclick="haptic('light'); showToast('Sound effects updated', 'success')">
-      <div class="settings-icon">🔊</div>
-      <div class="settings-text">
-        <div class="settings-label">Sound Effects</div>
-        <div class="settings-sub">Pull animations, rewards</div>
-      </div>
-      <div class="toggle on" onclick="event.stopPropagation(); this.classList.toggle('on'); haptic('light');"></div>
-    </div>
-    <div class="settings-row" onclick="haptic('light'); showToast('Haptic feedback updated', 'success')">
-      <div class="settings-icon">📳</div>
-      <div class="settings-text">
-        <div class="settings-label">Haptic Feedback</div>
-        <div class="settings-sub">Tactile responses on tap</div>
-      </div>
-      <div class="toggle on" onclick="event.stopPropagation(); this.classList.toggle('on'); haptic('light');"></div>
-    </div>
-    <div class="settings-row" onclick="haptic('light'); showToast('Language: English', 'success')">
-      <div class="settings-icon">🌐</div>
-      <div class="settings-text">
-        <div class="settings-label">Language</div>
-        <div class="settings-sub">English</div>
-      </div>
-      <div class="settings-arrow">›</div>
-    </div>
-    <div class="settings-row" onclick="haptic('light'); showToast('Theme: Cosmic (default)', 'success')">
-      <div class="settings-icon">🎨</div>
-      <div class="settings-text">
-        <div class="settings-label">Theme</div>
-        <div class="settings-sub">Cosmic · Dark mode</div>
-      </div>
-      <div class="settings-arrow">›</div>
-    </div>
-    <div class="settings-row" onclick="haptic('warning'); showToast('Cache cleared', 'success')">
-      <div class="settings-icon">🗑️</div>
-      <div class="settings-text">
-        <div class="settings-label">Clear Cache</div>
-        <div class="settings-sub">Free up space</div>
-      </div>
-      <div class="settings-arrow">›</div>
-    </div>
-    <div class="settings-row" onclick="haptic('light'); window.open('https://t.me/your_support_bot', '_blank')">
-      <div class="settings-icon">❓</div>
-      <div class="settings-text">
-        <div class="settings-label">Help & Support</div>
-        <div class="settings-sub">FAQ, contact, feedback</div>
-      </div>
-      <div class="settings-arrow">›</div>
-    </div>
+    <button class="event-join" onclick="haptic('success');showToast('Joined the event!','success')">⚡ JOIN EVENT</button>
   </div>
-
-  <div style="text-align: center; margin-top: 24px; padding: 16px; color: var(--text-faint); font-size: 11px;">
-    Summon Collection · v1.0.0<br>Made with 💜 for the community
+  <div class="event-list">
+    <div class="event-row"><div class="event-emoji">⚔️</div><div class="event-row-info"><div class="event-row-title">Daily Summon Sprint</div><div class="event-row-sub">Summon 10 cards today</div></div><div class="event-row-reward">+200 Æ</div></div>
+    <div class="event-row"><div class="event-emoji">🏆</div><div class="event-row-info"><div class="event-row-title">Rarity Hunter</div><div class="event-row-sub">Pull a MYTHIC this week</div></div><div class="event-row-reward">+500 Æ</div></div>
+    <div class="event-row"><div class="event-emoji">💎</div><div class="event-row-info"><div class="event-row-title">Collector</div><div class="event-row-sub">Own 50 unique characters</div></div><div class="event-row-reward">+1000 Æ</div></div>
   </div>
 </div>
 
-  ﹤div class="section" id="sec-trade"﹥
-    ﹤div class="section-header"﹥
-      ﹤div﹥
-        ﹤div class="section-title"﹥P2P Trades﹤/div﹥
-        ﹤div class="section-subtitle"﹥Trade cards with other summoners﹤/div﹥
-      ﹤/div﹥
-    ﹤/div﹥
-    ﹤div class="trade-list" id="tradeList"﹥﹤/div﹥
-    ﹤button class="fab" onclick="haptic('medium'); showToast('Creating trade offer…', 'success')"﹥+﹤/button﹥
-  ﹤/div﹥
+<!-- 🎮 GAMES -->
+<div class="section" id="sec-games">
+  <div class="section-header">
+    <div>
+      <div class="section-title">Mini Games</div>
+      <div class="section-subtitle">Play to earn Æ</div>
+    </div>
+  </div>
+  <div class="games-grid">
+    <div class="game-tile" onclick="haptic('light');showToast('Loading Gacha Rush...','success')">
+      <div class="game-tile-icon">🎰</div>
+      <div class="game-tile-title">Gacha Rush</div>
+      <div class="game-tile-sub">Quick pull mini-game</div>
+      <div class="game-tile-reward">+50 Æ</div>
+    </div>
+    <div class="game-tile" onclick="haptic('light');showToast('Loading Memory Match...','success')">
+      <div class="game-tile-icon">🃏</div>
+      <div class="game-tile-title">Memory Match</div>
+      <div class="game-tile-sub">Match card pairs</div>
+      <div class="game-tile-reward">+30 Æ</div>
+    </div>
+    <div class="game-tile" onclick="haptic('light');showToast('Loading Rarity Guess...','success')">
+      <div class="game-tile-icon">🎯</div>
+      <div class="game-tile-title">Rarity Guess</div>
+      <div class="game-tile-sub">Guess the card's rarity</div>
+      <div class="game-tile-reward">+80 Æ</div>
+    </div>
+    <div class="game-tile locked" onclick="haptic('error');showToast('Coming soon','error')">
+      <div class="game-tile-icon">⚔️</div>
+      <div class="game-tile-title">Battle Arena</div>
+      <div class="game-tile-sub">PvP with your cards</div>
+      <div class="game-tile-reward">+200 Æ</div>
+    </div>
+  </div>
+</div>
 
-  ﹤!-- ============================================================
-       🎉 EVENTS
-       ============================================================ --﹥
-  ﹤div class="section" id="sec-events"﹥
-    ﹤div class="event-banner"﹥
-      ﹤span class="event-tag"﹥🔴 LIVE NOW﹤/span﹥
-      ﹤div class="event-title"﹥Sakura Blossom Festival﹤/div﹥
-      ﹤div class="event-desc"﹥Double pull rates for all Naruto characters! Also new limited edition Itachi variant.﹤/div﹥
-      ﹤div class="event-timer" id="eventTimer"﹥
-        ﹤div class="event-timer-block"﹥﹤div class="event-timer-num" id="evDays"﹥02﹤/div﹥﹤div class="event-timer-label"﹥Days﹤/div﹥﹤/div﹥
-        ﹤div class="event-timer-block"﹥﹤div class="event-timer-num" id="evHours"﹥14﹤/div﹥﹤div class="event-timer-label"﹥Hours﹤/div﹥﹤/div﹥
-        ﹤div class="event-timer-block"﹥﹤div class="event-timer-num" id="evMins"﹥32﹤/div﹥﹤div class="event-timer-label"﹥Mins﹤/div﹥﹤/div﹥
-        ﹤div class="event-timer-block"﹥﹤div class="event-timer-num" id="evSecs"﹥48﹤/div﹥﹤div class="event-timer-label"﹥Secs﹤/div﹥﹤/div﹥
-      ﹤/div﹥
-      ﹤button class="event-join" onclick="haptic('success'); ribbonBurst(20); showToast('Joined Sakura Festival! 🌸', 'gold')"﹥Join Event → Win Æ +2000 ﹤/button﹥
-    ﹤/div﹥
+<!-- 🛍 SHOP -->
+<div class="section" id="sec-shop">
+  <div class="section-header">
+    <div>
+      <div class="section-title">Shop</div>
+      <div class="section-subtitle">Boosts, bundles & items</div>
+    </div>
+  </div>
+  <div class="shop-banner">
+    <div class="shop-banner-icon">🎁</div>
+    <div class="shop-banner-info">
+      <div class="shop-banner-title">Daily Bundle</div>
+      <div class="shop-banner-sub">500 Æ + 1 Rare Ticket</div>
+    </div>
+    <button class="claim-btn" onclick="buyShop('Daily Bundle',300)">300 Æ</button>
+  </div>
+  <div class="shop-grid">
+    <div class="shop-item"><div class="shop-item-emoji">🎫</div><div class="shop-item-name">Rare Ticket</div><div class="shop-item-desc">1 random RARE+ summon</div><button class="shop-buy" onclick="buyShop('Rare Ticket',150)">150 Æ</button></div>
+    <div class="shop-item"><div class="shop-item-emoji">🌟</div><div class="shop-item-name">Epic Ticket</div><div class="shop-item-desc">1 random EPIC+ summon</div><button class="shop-buy" onclick="buyShop('Epic Ticket',400)">400 Æ</button></div>
+    <div class="shop-item"><div class="shop-item-emoji">💎</div><div class="shop-item-name">Mythic Ticket</div><div class="shop-item-desc">1 random MYTHIC summon</div><button class="shop-buy" onclick="buyShop('Mythic Ticket',1200)">1200 Æ</button></div>
+    <div class="shop-item"><div class="shop-item-emoji">⚡</div><div class="shop-item-name">Refresh Token</div><div class="shop-item-desc">Skip market cooldown</div><button class="shop-buy" onclick="buyShop('Refresh Token',80)">80 Æ</button></div>
+  </div>
+</div>
 
-    ﹤div class="section-header"﹥﹤div﹥﹤div class="section-title"﹥Upcoming Events﹤/div﹥﹤/div﹥﹤/div﹥
-    ﹤div class="event-list"﹥
-      ﹤div class="event-row" onclick="haptic('light'); showToast('Event starts in 3 days', 'success')"﹥
-        ﹤div class="event-emoji"﹥⚔️﹤/div﹥
-        ﹤div class="event-row-info"﹥
-          ﹤div class="event-row-title"﹥Demon Slayer Run﹤/div﹥
-          ﹤div class="event-row-sub"﹥Collect all 5 Hashira for exclusive badge. Starts in 3 days.﹤/div﹥
-        ﹤/div﹥
-        ﹤div class="event-row-reward"﹥🏆 Hashira Set﹤/div﹥
-      ﹤/div﹥
-      ﹤div class="event-row" onclick="haptic('light'); showToast('Event starts in 5 days', 'success')"﹥
-        ﹤div class="event-emoji"﹥🏴‍☠️﹤/div﹥
-        ﹤div class="event-row-info"﹥
-          ﹤div class="event-row-title"﹥Grand Line Tournament﹤/div﹥
-          ﹤div class="event-row-sub"﹥PvP bracket tournament. Top 100 win VORTEX character. Starts in 5 days.﹤/div﹥
-        ﹤div class="event-row-reward"﹥⚡ VORTEX Luffy﹤/div﹥
-      ﹤/div﹥
-      ﹤div class="event-row" onclick="haptic('light'); showToast('Event starts in 1 week', 'success')"﹥
-        ﹤div class="event-emoji"﹥🌙﹤/div﹥
-        ﹤div class="event-row-info"﹥
-          ﹤div class="event-row-title"﹥Lunar New Year Drop﹤/div﹥
-          ﹤div class="event-row-sub"﹥Limited Sailor Moon & Rem variants. Free daily pull for 7 days. Starts in 1 week.﹤/div﹥
-        ﹤div class="event-row-reward"﹥🌙 7 Free Pulls﹤/div﹥
-      ﹤/div﹥
-    ﹤/div﹥
-  ﹤/div﹥
+<!-- 👥 FRIENDS -->
+<div class="section" id="sec-friends">
+  <div class="section-header">
+    <div>
+      <div class="section-title">Friends</div>
+      <div class="section-subtitle">Trade, compete, hang out</div>
+    </div>
+  </div>
+  <div class="friends-tabs">
+    <div class="friends-tab active" onclick="setFriendsTab(this,'online')">Online</div>
+    <div class="friends-tab" onclick="setFriendsTab(this,'all')">All</div>
+    <div class="friends-tab" onclick="setFriendsTab(this,'pending')">Requests</div>
+  </div>
+  <div id="friendsList"></div>
+</div>
 
-  ﹤!-- ============================================================
-       🎮 GAMES
-       ============================================================ --﹥
-  ﹤div class="section" id="sec-games"﹥
-    ﹤div class="section-header"﹥
-      ﹤div﹥
-        ﹤div class="section-title"﹥Mini-Games﹤/div﹥
-        ﹤div class="section-subtitle"﹥Play to earn Æ every day!﹤/div﹥
-      ﹤/div﹥
-    ﹤/div﹥
-    ﹤div class="games-grid" id="gamesGrid"﹥
-      ﹤div class="game-tile" onclick="haptic('medium'); showToast('Dice game — coming soon', 'success')"﹥
-        ﹤div class="game-tile-icon"﹥🎲﹤/div﹥
-        ﹤div class="game-tile-title"﹥Lucky Dice﹤/div﹥
-        ﹤div class="game-tile-sub"﹥Roll for bonus Æ﹤/div﹥
-        ﹤div class="game-tile-reward"﹥+50 Æ ﹤/div﹥
-      ﹤/div﹥
-      ﹤div class="game-tile" onclick="haptic('medium'); showToast('Slot machine — coming soon', 'success')"﹥
-        ﹤div class="game-tile-icon"﹥🎰﹤/div﹥
-        ﹤div class="game-tile-title"﹥Slot Machine﹤/div﹥
-        ﹤div class="game-tile-sub"﹥Hit jackpot! 3x pulls﹤/div﹥
-        ﹤div class="game-tile-reward"﹥3x Pulls ﹤/div﹥
-      ﹤/div﹥
-      ﹤div class="game-tile" onclick="haptic('medium'); showToast('Memory game — coming soon', 'success')"﹥
-        ﹤div class="game-tile-icon"﹥🧠﹤/div﹥
-        ﹤div class="game-tile-title"﹥Memory Match﹤/div﹥
-        ﹤div class="game-tile-sub"﹥Find pairs of cards﹤/div﹥
-        ﹤div class="game-tile-reward"﹥+100 Æ ﹤/div﹥
-      ﹤/div﹥
-      ﹤div class="game-tile" onclick="haptic('medium'); showToast('Quiz — coming soon', 'success')"﹥
-        ﹤div class="game-tile-icon"﹥❓﹤/div﹥
-        ﹤div class="game-tile-title"﹥Anime Quiz﹤/div﹥
-        ﹤div class="game-tile-sub"﹥10 questions, win big﹤/div﹥
-        ﹤div class="game-tile-reward"﹥+200 Æ ﹤/div﹥
-      ﹤/div﹥
-      ﹤div class="game-tile locked" onclick="haptic('error')"﹥
-        ﹤div class="game-tile-icon"﹥⚔️﹤/div﹥
-        ﹤div class="game-tile-title"﹥PvP Arena﹤/div﹥
-        ﹤div class="game-tile-sub"﹥Coming soon ﹤/div﹥
-        ﹤div class="game-tile-reward"﹥Soon ﹤/div﹥
-      ﹤/div﹥
-      ﹤div class="game-tile locked" onclick="haptic('error')"﹥
-        ﹤div class="game-tile-icon"﹥🗡️﹤/div﹥
-        ﹤div class="game-tile-title"﹥Raid Boss﹤/div﹥
-        ﹤div class="game-tile-sub"﹥Coming soon ﹤/div﹥
-        ﹤div class="game-tile-reward"﹥Soon ﹤/div﹥
-      ﹤/div﹥
-    ﹤/div﹥
-  ﹤/div﹥
+<!-- 👤 PROFILE -->
+<div class="section" id="sec-profile">
+  <div class="profile-hero">
+    <div class="profile-avatar-large" id="profileAvatar">🦊</div>
+    <div class="profile-name-large" id="profileName">Loading...</div>
+    <div class="profile-handle" id="profileHandle">@username</div>
+    <div class="profile-badges">
+      <div class="pbadge">⭐ OG</div>
+      <div class="pbadge gold">👑 Whale</div>
+      <div class="pbadge pink">🔥 7-Day</div>
+    </div>
+  </div>
+  <div class="profile-grid-stats">
+    <div class="pg-stat"><div class="pg-stat-label">Total Cards</div><div class="pg-stat-val" id="profTotal">0</div><div class="pg-stat-sub">In collection</div></div>
+    <div class="pg-stat"><div class="pg-stat-label">Collection Value</div><div class="pg-stat-val" id="profValue">0 Æ</div><div class="pg-stat-sub">Total worth</div></div>
+    <div class="pg-stat"><div class="pg-stat-label">Total Pulls</div><div class="pg-stat-val" id="profPulls">0</div><div class="pg-stat-sub">All time</div></div>
+    <div class="pg-stat"><div class="pg-stat-label">Daily Streak</div><div class="pg-stat-val" id="profStreak">0 🔥</div><div class="pg-stat-sub">Days claimed</div></div>
+  </div>
+  <div class="settings-list">
+    <div class="settings-row" onclick="haptic('light');showToast('Sound settings','success')">
+      <div class="settings-icon">🔊</div>
+      <div class="settings-text"><div class="settings-label">Sound</div><div class="settings-sub">SFX & summon sounds</div></div>
+      <div class="toggle on" onclick="event.stopPropagation();this.classList.toggle('on')"></div>
+    </div>
+    <div class="settings-row" onclick="haptic('light');showToast('Haptics settings','success')">
+      <div class="settings-icon">📳</div>
+      <div class="settings-text"><div class="settings-label">Haptics</div><div class="settings-sub">Vibration feedback</div></div>
+      <div class="toggle on" onclick="event.stopPropagation();this.classList.toggle('on')"></div>
+    </div>
+    <div class="settings-row" onclick="haptic('light');showToast('Language: English','success')">
+      <div class="settings-icon">🌐</div>
+      <div class="settings-text"><div class="settings-label">Language</div><div class="settings-sub">English</div></div>
+      <div class="settings-arrow">›</div>
+    </div>
+    <div class="settings-row" onclick="haptic('light');showToast('Help center opened','success')">
+      <div class="settings-icon">❓</div>
+      <div class="settings-text"><div class="settings-label">Help & Support</div><div class="settings-sub">FAQ, contact us</div></div>
+      <div class="settings-arrow">›</div>
+    </div>
+  </div>
+</div>
+    <div class="settings-sub">English</div></div>
+      <div class="settings-arrow">›</div>
+    </div>
+    <div class="settings-row" onclick="haptic('light');showToast('Support: @Beasgohan','success')">
+      <div class="settings-icon">💬</div>
+      <div class="settings-text"><div class="settings-label">Support</div><div class="settings-sub">Get help & report bugs</div></div>
+      <div class="settings-arrow">›</div>
+    </div>
+    <div class="settings-row" onclick="haptic('light');showToast('You are using v1.0.0','success')">
+      <div class="settings-icon">ℹ️</div>
+      <div class="settings-text"><div class="settings-label">About</div><div class="settings-sub">Version 1.0.0</div></div>
+      <div class="settings-arrow">›</div>
+    </div>
+  </div>
+</div>
 
-  ﹤!-- ============================================================
-       🛍 SHOP
-       ============================================================ --﹥
-  ﹤div class="section" id="sec-shop"﹥
-    ﹤div class="section-header"﹥
-      ﹤div﹥
-        ﹤div class="section-title"﹥Premium Shop﹤/div﹥
-        ﹤div class="section-subtitle"﹥Boosters, packs & premium perks ﹤/div﹥
-      ﹤/div﹥
-    ﹤/div﹥
-    ﹤div class="shop-banner"﹥
-      ﹤div class="shop-banner-icon"﹥💎﹤/div﹥
-      ﹤div class="shop-banner-info"﹥
-        ﹤div class="shop-banner-title"﹥VIP Pass — 30 days ﹤/div﹥
-        ﹤div class="shop-banner-sub"﹥+50% Æ from all sources, daily free summon, exclusive VORTEX pulls ﹤/div﹥
-      ﹤/div﹥
-    ﹤/div﹥
-    ﹤div class="shop-grid" id="shopGrid"﹥
-      ﹤div class="shop-item" onclick="buyShop('Starter Pack', 499)"﹥
-        ﹤div class="shop-item-emoji"﹥🎁﹤/div﹥
-        ﹤div class="shop-item-name"﹥Starter Pack ﹤/div﹥
-        ﹤div class="shop-item-desc"﹥500 Æ + 3 random summons ﹤/div﹥
-        ﹤button class="shop-buy" id="buy-starter"﹥Buy ﹤span class="shop-buy-price"﹥499 Æ ﹤/span﹥﹤/button﹥
-      ﹤/div﹥
-      ﹤div class="shop-item" onclick="buyShop('Booster x5', 250)"﹥
-        ﹤div class="shop-item-emoji"﹥⚡﹤/div﹥
-        ﹤div class="shop-item-name"﹥Booster x5 ﹤/div﹥
-        ﹤div class="shop-item-desc"﹥5 free refreshes of marketplace ﹤/div﹥
-        ﹤button class="shop-buy" id="buy-booster"﹥Buy ﹤span class="shop-buy-price"﹥250 Æ ﹤/span﹥﹤/button﹥
-      ﹤/div﹥
-      ﹤div class="shop-item" onclick="buyShop('Luck Potion', 800)"﹥
-        ﹤div class="shop-item-emoji"﹥🍀﹤/div﹥
-        ﹤div class="shop-item-name"﹥Luck Potion ﹤/div﹥
-        ﹤div class="shop-item-desc"﹥24h: 2x legendary chance ﹤/div﹥
-        ﹤button class="shop-buy" id="buy-luck"﹥Buy ﹤span class="shop-buy-price"﹥800 Æ ﹤/span﹥﹤/button﹥
-      ﹤/div﹥
-      ﹤div class="shop-item" onclick="buyShop('Vortex Crystal', 2500)"﹥
-        ﹤div class="shop-item-emoji"﹥💠﹤/div﹥
-        ﹤div class="shop-item-name"﹥Vortex Crystal ﹤/div﹥
-        ﹤div class="shop-item-desc"﹥Guaranteed VORTEX character ﹤/div﹥
-        ﹤button class="shop-buy" id="buy-vortex"﹥Buy ﹤span class="shop-buy-price"﹥2500 Æ ﹤/span﹥﹤/button﹥
-      ﹤/div﹥
-    ﹤/div﹥
-  ﹤/div﹥
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-sec="home" onclick="haptic('light');navigate('home')">
+    <div class="nav-icon">🏠</div>Home
+  </button>
+  <button class="nav-btn" data-sec="market" onclick="haptic('light');navigate('market')">
+    <div class="nav-icon">🛍</div>Market
+  </button>
+  <button class="nav-btn" data-sec="inventory" onclick="haptic('light');navigate('inventory')">
+    <div class="nav-icon">🎒</div>Collection
+  </button>
+  <button class="nav-btn" data-sec="top" onclick="haptic('light');navigate('top')">
+    <div class="nav-icon">🏆</div>Top
+  </button>
+  <button class="nav-btn" data-sec="profile" onclick="haptic('light');navigate('profile')">
+    <div class="nav-icon">👤</div>Profile
+  </button>
+</nav>
 
-  ﹤!-- ============================================================
-       👥 FRIENDS
-       ============================================================ --﹥
-  ﹤div class="section" id="sec-friends"﹥
-    ﹤div class="section-header"﹥
-      ﹤div﹥
-        ﹤div class="section-title"﹥Friends ﹤/div﹥
-        ﹤div class="section-subtitle"﹥27 friends · 8 online ﹤/div﹥
-      ﹤/div﹥
-    ﹤/div﹥
-    ﹤div class="friends-tabs"﹥
-      ﹤div class="friends-tab active" onclick="setFriendsTab(this, 'online')"﹥🟢 Online ﹤/div﹥
-      ﹤div class="friends-tab" onclick="setFriendsTab(this, 'all')"﹥All ﹤/div﹥
-      ﹤div class="friends-tab" onclick="setFriendsTab(this, 'pending')"﹥Requests ﹤/div﹥
-    ﹤/div﹥
-    ﹤div id="friendsList"﹥﹤/div﹥
-  ﹤/div﹥
-
-﹤/script﹥
-  /* ============================================================
-     PART 4 — P2P + EVENTS + GAMES + SHOP + FRIENDS
-     ============================================================ */
-  const TRADES = [
-    { user: 'DemonKing',   emoji: '😈', offer: ['⚔️','🩸'],  want: ['🌸','🦊'],       status: 'pending' },
-    { user: 'MoonPrincess', emoji: '👸', offer: ['🌙','💎'],  want: ['⚡','🔥'],       status: 'pending' },
-    { user: 'You',         emoji: '🦊', offer: ['🍥','🌀'],  want: ['🗡️','🌊'],       status: 'mine' },
-    { user: 'SaiyanX',     emoji: '💪', offer: ['⚡','💥'],  want: ['🍃','🛡️'],       status: 'done' },
-  ];
-
-  function renderTrades() {
-    const list = document.getElementById('tradeList');
-    list.innerHTML = TRADES.map(t =﹥ {
-      const offerStr = t.offer.map(e =﹥ `﹤span class="trade-mini"﹥${e}﹤/span﹥`).join('');
-      const wantStr = t.want.map(e =﹥ `﹤span class="trade-mini"﹥${e}﹤/span﹥`).join('');
-      return `
-        ﹤div class="trade-card" onclick="haptic('light'); showToast('Viewing ${t.user}'s trade', 'success')"﹥
-          ﹤div class="trade-avatar"﹥${t.emoji}﹤/div﹥
-          ﹤div class="trade-info"﹥
-            ﹤div class="trade-user"﹥${t.user} ﹤span class="trade-status ${t.status}"﹥${t.status}﹤/span﹥﹤/div﹥
-            ﹤div class="trade-offer"﹥Offers ﹤span class="arrow"﹥→﹤/span﹥ Wants ﹤/div﹥
-            ﹤div class="trade-card-mini"﹥${offerStr} ﹤span class="arrow" style="color: var(--text-dim);"﹥→﹤/span﹥  ${wantStr}﹤/div﹥
-          ﹤/div﹥
-        ﹤/div﹥`;
-    }).join('');
-  }
-
-  /* Event timer */
-  let eventEndTime = Date.now() + (2 * 24 * 3600 + 14 * 3600 + 32 * 60 + 48) * 1000;
-  function updateEventTimer() {
-    const diff = eventEndTime - Date.now();
-    if (diff ﹤= 0) return;
-    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const s = Math.floor((diff % (1000 * 60)) / 1000);
-    const pad = n =﹥ String(n).padStart(2, '0');
-    const dEl = document.getElementById('evDays'); if (dEl) dEl.textContent = pad(d);
-    const hEl = document.getElementById('evHours'); if (hEl) hEl.textContent = pad(h);
-    const mEl = document.getElementById('evMins'); if (mEl) mEl.textContent = pad(m);
-    const sEl = document.getElementById('evSecs'); if (sEl) sEl.textContent = pad(s);
-  }
-  setInterval(updateEventTimer, 1000);
-
-  /* Shop */
-  function buyShop(name, price) {
-    haptic('medium');
-    const bal = parseInt(document.getElementById('balance').textContent.replace(/,/g, ''));
-    if (bal ﹤ price) {
-      haptic('error');
-      showToast(`Not enough Æ! Need ${price.toLocaleString()}`, 'error');
-      return;
-    }
-    document.getElementById('balance').textContent = (bal - price).toLocaleString();
-    haptic('success');
-    ribbonBurst(15);
-    showToast(`✓ Purchased ${name}!`, 'success');
-  }
-
-  /* Friends */
-  const FRIENDS = [
-    { name: 'DemonKing',    emoji: '😈', online: true,  last: 'Summoned Zero Two' },
-    { name: 'MoonPrincess', emoji: '👸', online: true,  last: 'Active 2m ago' },
-    { name: 'SaiyanX',      emoji: '💪', online: true,  last: 'Active 5m ago' },
-    { name: 'NekoMaster',   emoji: '🐱', online: true,  last: 'Active 12m ago' },
-    { name: 'BladeDancer',  emoji: '⚔️', online: false, last: 'Last seen 2h ago' },
-    { name: 'StarGazer',    emoji: '⭐', online: true,  last: 'Active 1m ago' },
-    { name: 'PhoenixRise',  emoji: '🔥', online: false, last: 'Last seen yesterday' },
-    { name: 'OceanSoul',    emoji: '🌊', online: true,  last: 'Active 8m ago' },
-  ];
-
-  function setFriendsTab(el, tab) {
-    haptic('light');
-    document.querySelectorAll('.friends-tab').forEach(t =﹥ t.classList.remove('active'));
-    el.classList.add('active');
-    renderFriends(tab);
-  }
-
-  function renderFriends(tab = 'online') {
-    const list = document.getElementById('friendsList');
-    let friends = FRIENDS;
-    if (tab === 'online') friends = FRIENDS.filter(f =﹥ f.online);
-    else if (tab === 'pending') {
-      list.innerHTML = `﹤div class="empty"﹥﹤div class="empty-icon"﹥📬﹤/div﹥﹤div class="empty-text"﹥No friend requests yet. Invite your friends! ﹤/div﹥﹤/div﹥`;
-      return;
-    }
-    if (friends.length === 0) {
-      list.innerHTML = `﹤div class="empty"﹥﹤div class="empty-icon"﹥😴﹤/div﹥﹤div class="empty-text"﹥No friends online. ﹤/div﹥﹤/div﹥`;
-      return;
-    }
-    list.innerHTML = friends.map(f =﹥ `
-      ﹤div class="friend-row" onclick="haptic('light'); showToast('Opening ${f.name}'s profile', 'success')"﹥
-        ﹤div class="friend-avatar"﹥${f.emoji}﹤/div﹥
-        ﹤div class="friend-info"﹥
-          ﹤div class="friend-name"﹥${f.name} ﹤/div﹥
-          ﹤div class="friend-status ${f.online ? 'online' : ''}"﹥${f.online ? '● Online' : '○ ' + f.last} ﹤/div﹥
-        ﹤/div﹥
-        ﹤button class="friend-action" onclick="event.stopPropagation(); haptic('light'); showToast('Sent trade request to ${f.name}', 'success')"﹥Trade ﹤/button﹥
-      ﹤/div﹥
-    `).join('');
-  }
-
-  // Init
-  renderTrades();
-  updateEventTimer();
-  renderFriends('online');
-
-</body>
 <script>
 
-  /* ============================================================
-     🔌 TELEGRAM WEBAPP BRIDGE
-     ============================================================ */
-  const tg = window.Telegram?.WebApp;
-  if (tg) {
-    tg.ready();
-    tg.expand();
-    tg.setHeaderColor('#07040f');
-    tg.setBackgroundColor('#07040f');
-  }
+/* ============================================================
+   🔌 API CONFIG — point this to your bot's API tunnel
+   ============================================================ */
+const API_BASE = 'https://84830f49ea62e5.lhr.life';  // 👈 Change to your live tunnel
 
-  /* ============================================================
-     📳 HAPTIC FEEDBACK (Telegram native)
-     ============================================================ */
-  function haptic(style = 'light') {
-    try {
-      if (tg?.HapticFeedback) {
-        if (style === 'light') tg.HapticFeedback.impactOccurred('light');
-        else if (style === 'medium') tg.HapticFeedback.impactOccurred('medium');
-        else if (style === 'heavy') tg.HapticFeedback.impactOccurred('heavy');
-        else if (style === 'success') tg.HapticFeedback.notificationOccurred('success');
-        else if (style === 'error') tg.HapticFeedback.notificationOccurred('error');
-        else if (style === 'warning') tg.HapticFeedback.notificationOccurred('warning');
-      } else if (navigator.vibrate) {
-        // Fallback for browser preview
-        const map = { light: 10, medium: 20, heavy: 30, success: [10,30,10], error: [30,10,30], warning: [20,20] };
-        navigator.vibrate(map[style] || 10);
-      }
-    } catch (e) {}
-  }
+/* ============================================================
+   🆔 USER — get Telegram user from WebApp
+   ============================================================ */
+const tg = window.Telegram?.WebApp;
+if (tg) {
+  tg.ready();
+  tg.expand();
+  tg.setHeaderColor('#07040f');
+  tg.setBackgroundColor('#07040f');
+}
+const USER = {
+  id: tg?.initDataUnsafe?.user?.id || 0,
+  name: tg?.initDataUnsafe?.user?.first_name || 'Summoner',
+  username: tg?.initDataUnsafe?.user?.username || 'guest',
+};
 
-  /* ============================================================
-     🔔 TOAST
-     ============================================================ */
-  let toastTimer;
-  function showToast(msg, type = '') {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = 'toast show ' + type;
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
-  }
-
-  /* ============================================================
-     🎉 RIBBON BURST (reward animation)
-     ============================================================ */
-  function ribbonBurst(amount = 24) {
-    const burst = document.getElementById('ribbonBurst');
-    burst.innerHTML = '';
-    burst.classList.add('show');
-    const colors = ['#00e6ff', '#b35cff', '#ff5cc8', '#ffd86b', '#7ad7ff'];
-    for (let i = 0; i < amount; i++) {
-      const r = document.createElement('div');
-      r.className = 'ribbon';
-      const angle = (i / amount) * Math.PI * 2;
-      const dist = 180 + Math.random() * 80;
-      r.style.left = '50%'; r.style.top = '50%';
-      r.style.background = colors[i % colors.length];
-      r.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
-      r.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
-      burst.appendChild(r);
+/* ============================================================
+   📳 HAPTICS
+   ============================================================ */
+function haptic(style = 'light') {
+  try {
+    if (tg?.HapticFeedback) {
+      if (style === 'light') tg.HapticFeedback.impactOccurred('light');
+      else if (style === 'medium') tg.HapticFeedback.impactOccurred('medium');
+      else if (style === 'heavy') tg.HapticFeedback.impactOccurred('heavy');
+      else if (style === 'success') tg.HapticFeedback.notificationOccurred('success');
+      else if (style === 'error') tg.HapticFeedback.notificationOccurred('error');
+      else if (style === 'warning') tg.HapticFeedback.notificationOccurred('warning');
+    } else if (navigator.vibrate) {
+      const map = {light:10, medium:20, heavy:30, success:[10,30,10], error:[30,10,30], warning:[20,20]};
+      navigator.vibrate(map[style] || 10);
     }
-    setTimeout(() => burst.classList.remove('show'), 1500);
+  } catch (e) {}
+}
+
+/* ============================================================
+   🔔 TOAST
+   ============================================================ */
+let toastTimer;
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+/* ============================================================
+   🎉 RIBBON BURST
+   ============================================================ */
+function ribbonBurst(amount = 24) {
+  const burst = document.getElementById('ribbonBurst');
+  burst.innerHTML = '';
+  burst.classList.add('show');
+  const colors = ['#00e6ff', '#b35cff', '#ff5cc8', '#ffd86b', '#7ad7ff'];
+  for (let i = 0; i < amount; i++) {
+    const r = document.createElement('div');
+    r.className = 'ribbon';
+    const angle = (i / amount) * Math.PI * 2;
+    const dist = 180 + Math.random() * 80;
+    r.style.left = '50%'; r.style.top = '50%';
+    r.style.background = colors[i % colors.length];
+    r.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+    r.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+    burst.appendChild(r);
   }
+  setTimeout(() => burst.classList.remove('show'), 1500);
+}
 
-  /* ============================================================
-     🧭 NAVIGATION
-     ============================================================ */
-  function navigate(name) {
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    const sec = document.getElementById('sec-' + name);
-    if (sec) sec.classList.add('active');
-    const nav = document.querySelector(`.nav-btn[data-sec="${name}"]`);
-    if (nav) nav.classList.add('active');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+/* ============================================================
+   🧭 NAVIGATION
+   ============================================================ */
+function navigate(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const sec = document.getElementById('sec-' + name);
+  if (sec) sec.classList.add('active');
+  const nav = document.querySelector(`.nav-btn[data-sec="${name}"]`);
+  if (nav) nav.classList.add('active');
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+/* ============================================================
+   🎨 RARITY HELPERS
+   ============================================================ */
+function getRarityColor(r) {
+  const colors = {
+    COMMON: '#8a8a8a', RARE: '#4a8aff', EPIC: '#b35cff',
+    LEGENDARY: '#ffd86b', MYTHIC: '#ff5cc8', CELESTIA_X: '#00e6ff', VORTEX: '#ff5cc8',
+  };
+  return colors[r] || '#fff';
+}
+function formatNum(n) { return (n || 0).toLocaleString(); }
+
+/* ============================================================
+   📚 MOCK FALLBACK DATA (used if API is offline)
+   ============================================================ */
+const POOL = [
+  {id:1,name:'Naruto Uzumaki',anime:'Naruto',rarity:'LEGENDARY',emoji:'🦊',price:850},
+  {id:2,name:'Sailor Moon',anime:'Sailor Moon',rarity:'EPIC',emoji:'🌙',price:420},
+  {id:3,name:'Tanjiro Kamado',anime:'Demon Slayer',rarity:'RARE',emoji:'🌊',price:180},
+  {id:4,name:'Gojo Satoru',anime:'Jujutsu Kaisen',rarity:'MYTHIC',emoji:'👁️',price:1200},
+  {id:5,name:'Luffy',anime:'One Piece',rarity:'EPIC',emoji:'🏴‍☠️',price:380},
+  {id:6,name:'Goku Ultra Instinct',anime:'Dragon Ball',rarity:'VORTEX',emoji:'⚡',price:5000},
+  {id:7,name:'Mikasa Ackerman',anime:'Attack on Titan',rarity:'RARE',emoji:'⚔️',price:220},
+  {id:8,name:'Zero Two',anime:'Darling in Franxx',rarity:'CELESTIA_X',emoji:'💗',price:2400},
+  {id:9,name:'Hinata Hyuga',anime:'Naruto',rarity:'RARE',emoji:'🌸',price:200},
+  {id:10,name:'Itachi Uchiha',anime:'Naruto',rarity:'MYTHIC',emoji:'🌀',price:1400},
+  {id:11,name:'Nezuko Kamado',anime:'Demon Slayer',rarity:'EPIC',emoji:'🎋',price:460},
+  {id:12,name:'Rem',anime:'Re:Zero',rarity:'LEGENDARY',emoji:'🔵',price:720},
+  {id:13,name:'Asuna',anime:'Sword Art Online',rarity:'RARE',emoji:'⚔️',price:240},
+  {id:14,name:'Power',anime:'Chainsaw Man',rarity:'EPIC',emoji:'🩸',price:380},
+  {id:15,name:'Megumin',anime:'KonoSuba',rarity:'LEGENDARY',emoji:'💥',price:800},
+  {id:16,name:'Yor Forger',anime:'Spy x Family',rarity:'EPIC',emoji:'🌹',price:480},
+  {id:17,name:'Makima',anime:'Chainsaw Man',rarity:'MYTHIC',emoji:'🐕',price:1300},
+  {id:18,name:'Hatsune Miku',anime:'Vocaloid',rarity:'CELESTIA_X',emoji:'🎤',price:2200},
+];
+
+/* ============================================================
+   🌐 API CALLS (with fallback to mock)
+   ============================================================ */
+async function apiGet(path) {
+  try {
+    const r = await fetch(API_BASE + path, {method: 'GET'});
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.json();
+  } catch (e) {
+    console.warn('API fallback for', path, e.message);
+    return null;
   }
+}
 
-  /* ============================================================
-     🎁 DAILY CLAIM
-     ============================================================ */
-  let claimed = false;
-  function claimDaily() {
-    if (claimed) return;
-    haptic('success');
-    ribbonBurst(28);
-
-    const btn = document.getElementById('claimBtn');
-    btn.textContent = '✓ CLAIMED';
-    btn.classList.add('claimed');
-    btn.disabled = true;
-    claimed = true;
-
-    // Update balance
-    const bal = document.getElementById('balance');
-    const current = parseInt(bal.textContent.replace(/,/g, ''));
-    const reward = 100 + Math.floor(Math.random() * 200);
-    const newBal = current + reward;
-    bal.textContent = newBal.toLocaleString();
-
-    setTimeout(() => showToast(`+${reward} Æ claimed! 🔥`, 'gold'), 300);
+async function loadUser() {
+  const data = await apiGet('/api/user/' + USER.id);
+  if (data) {
+    state.balance = data.balance ?? data.astrites ?? 0;
+    state.inventory = data.inventory || data.owned || [];
+    state.streak = data.streak || 0;
+    state.pulls = data.pulls || 0;
+  } else {
+    state.balance = 12450;
+    state.inventory = [];
+    state.streak = 7;
+    state.pulls = 14;
   }
+  renderUser();
+}
 
-
-  /* ============================================================
-     PART 2 — MARKETPLACE
-     ============================================================ */
-
-  /* 📚 Mock character pool (will be replaced by bot API) */
-  const POOL = [
-    { id: 1,  name: 'Naruto Uzumaki',     anime: 'Naruto',         rarity: 'LEGENDARY',  emoji: '🦊', price: 850  },
-    { id: 2,  name: 'Sailor Moon',         anime: 'Sailor Moon',    rarity: 'EPIC',       emoji: '🌙', price: 420  },
-    { id: 3,  name: 'Tanjiro Kamado',      anime: 'Demon Slayer',   rarity: 'RARE',       emoji: '🌊', price: 180  },
-    { id: 4,  name: 'Gojo Satoru',         anime: 'Jujutsu Kaisen', rarity: 'MYTHIC',     emoji: '👁️', price: 1200 },
-    { id: 5,  name: 'Luffy',               anime: 'One Piece',      rarity: 'EPIC',       emoji: '🏴‍☠️', price: 380  },
-    { id: 6,  name: 'Goku Ultra Instinct', anime: 'Dragon Ball',    rarity: 'VORTEX',     emoji: '⚡', price: 5000 },
-    { id: 7,  name: 'Mikasa Ackerman',     anime: 'Attack on Titan',rarity: 'RARE',       emoji: '⚔️', price: 220  },
-    { id: 8,  name: 'Zero Two',            anime: 'Darling in Franxx', rarity: 'CELESTIA_X', emoji: '💗', price: 2400 },
-    { id: 9,  name: 'Hinata Hyuga',        anime: 'Naruto',         rarity: 'RARE',       emoji: '🌸', price: 200  },
-    { id: 10, name: 'Itachi Uchiha',       anime: 'Naruto',         rarity: 'MYTHIC',     emoji: '🌀', price: 1400 },
-    { id: 11, name: 'Nezuko Kamado',       anime: 'Demon Slayer',   rarity: 'EPIC',       emoji: '🎋', price: 460  },
-    { id: 12, name: 'Rem',                 anime: 'Re:Zero',        rarity: 'LEGENDARY',  emoji: '🔵', price: 720  },
-    { id: 13, name: 'Asuna',               anime: 'Sword Art Online',rarity:'RARE',       emoji: '⚔️', price: 240  },
-    { id: 14, name: 'Power',               anime: 'Chainsaw Man',   rarity: 'EPIC',       emoji: '🩸', price: 380  },
-    { id: 15, name: 'Megumin',             anime: 'KonoSuba',       rarity: 'LEGENDARY',  emoji: '💥', price: 800  },
-    { id: 16, name: 'Yor Forger',          anime: 'Spy x Family',   rarity: 'EPIC',       emoji: '🌹', price: 480  },
-    { id: 17, name: 'Makima',              anime: 'Chainsaw Man',   rarity: 'MYTHIC',     emoji: '🐕', price: 1300 },
-    { id: 18, name: 'Hatsune Miku',        anime: 'Vocaloid',       rarity: 'CELESTIA_X', emoji: '🎤', price: 2200 },
-  ];
-
-  let market = [];
-  let ownedIds = new Set();
-  let gridCols = 2;
-  let refreshCount = 0;
-  let refreshCooldown = 0;
-  let selectedChar = null;
-
-  function pickMarket(n = 10) {
-    const shuffled = [...POOL].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, n);
+async function loadMarket() {
+  const data = await apiGet('/api/market');
+  if (data && Array.isArray(data.cards || data)) {
+    state.market = (data.cards || data).slice(0, 10);
+  } else {
+    state.market = [...POOL].sort(() => Math.random() - 0.5).slice(0, 10);
   }
+  renderMarket();
+}
 
-  function renderMarket() {
-    const grid = document.getElementById('charGrid');
-    grid.className = 'char-grid' + (gridCols === 1 ? ' list' : '');
-    grid.innerHTML = market.map(c => {
-      const owned = ownedIds.has(c.id) ? ' owned' : '';
+async function loadLeaderboard() {
+  const data = await apiGet('/api/leaderboard');
+  if (data && Array.isArray(data.global)) {
+    state.lb.global = data.global;
+    state.lb.friends = data.friends || state.lb.friends;
+    state.lb.guild = data.guild || state.lb.guild;
+    renderLb();
+  }
+}
+
+async function loadFriends() {
+  const data = await apiGet('/api/friends/' + USER.id);
+  if (data && Array.isArray(data.friends)) {
+    state.friends = data.friends;
+    renderFriends(state.friendsTab);
+  }
+}
+
+async function claimDailyApi() {
+  haptic('success');
+  const data = await apiGet('/api/claim/' + USER.id);
+  let reward = data?.reward || Math.floor(100 + Math.random() * 200);
+  state.balance += reward;
+  state.streak = (state.streak || 0) + 1;
+  renderUser();
+  ribbonBurst(28);
+  const btn = document.getElementById('claimBtn');
+  btn.textContent = '✓ CLAIMED';
+  btn.classList.add('claimed');
+  btn.disabled = true;
+  setTimeout(() => showToast(`+${reward} Æ claimed! 🔥`, 'gold'), 300);
+}
+
+/* ============================================================
+   🗄 APP STATE
+   ============================================================ */
+const state = {
+  balance: 0,
+  inventory: [],
+  streak: 0,
+  pulls: 0,
+  market: [],
+  selectedChar: null,
+  selectedSell: null,
+  gridCols: 2,
+  refreshCount: 0,
+  refreshCooldown: 0,
+  invFilter: 'ALL',
+  favIds: new Set(),
+  lbKind: 'global',
+  lbData: [],
+  friends: [
+    {name:'DemonKing',emoji:'😈',online:true,last:'Summoned Zero Two'},
+    {name:'MoonPrincess',emoji:'👸',online:true,last:'Active 2m ago'},
+    {name:'SaiyanX',emoji:'💪',online:true,last:'Active 5m ago'},
+    {name:'NekoMaster',emoji:'🐱',online:true,last:'Active 12m ago'},
+    {name:'BladeDancer',emoji:'⚔️',online:false,last:'Last seen 2h ago'},
+    {name:'StarGazer',emoji:'⭐',online:true,last:'Active 1m ago'},
+  ],
+  friendsTab: 'online',
+  trades: [
+    {user:'DemonKing',emoji:'😈',offer:['⚔️','🩸'],want:['🌸','🦊'],status:'pending'},
+    {user:'MoonPrincess',emoji:'👸',offer:['🌙','💎'],want:['⚡','🔥'],status:'pending'},
+    {user:'You',emoji:'🦊',offer:['🍥','🌀'],want:['🗡️','🌊'],status:'mine'},
+    {user:'SaiyanX',emoji:'💪',offer:['⚡','💥'],want:['🍃','🛡️'],status:'done'},
+  ],
+  lb: {
+    global: [
+      {name:'KawaiiSlayer',avatar:'⚔️',score:48230,cards:18},
+      {name:'Beast Gohan',avatar:'🦊',score:12750,cards:9,me:true},
+      {name:'VortexHunter',avatar:'🌀',score:39850,cards:15},
+      {name:'NekoQueen',avatar:'🐱',score:35420,cards:14},
+      {name:'SakuraStorm',avatar:'🌸',score:29880,cards:12},
+      {name:'OniSlayer',avatar:'👹',score:24100,cards:11},
+    ],
+    friends: [
+      {name:'You',avatar:'🦊',score:12750,cards:9,me:true},
+      {name:'AnimeKing99',avatar:'👑',score:9120,cards:7},
+      {name:'MikuStan',avatar:'🎤',score:6450,cards:6},
+    ],
+    guild: [
+      {name:'ShadowMonarchs',avatar:'👁️',score:89230,cards:18,isGuild:true},
+      {name:'Beast Gohan',avatar:'🦊',score:12750,cards:9,me:true},
+      {name:'HunterAssoc',avatar:'⚔️',score:78450,cards:16,isGuild:true},
+    ],
+  },
+};
+
+/* ============================================================
+   🎁 DAILY CLAIM
+   ============================================================ */
+function claimDaily() {
+  if (document.getElementById('claimBtn').disabled) return;
+  claimDailyApi();
+}
+
+/* ============================================================
+   🛍 MARKET
+   ============================================================ */
+function pickMarket(n = 10) {
+  return [...POOL].sort(() => Math.random() - 0.5).slice(0, n);
+}
+function renderMarket() {
+  const grid = document.getElementById('charGrid');
+  grid.className = 'char-grid' + (state.gridCols === 1 ? ' list' : '');
+  grid.innerHTML = state.market.map(c => {
+    const owned = state.inventory.some(x => (x.id || x) === c.id) ? ' owned' : '';
+    return `
+      <div class="char-card rarity-${c.rarity}${owned}" onclick="openPurchase(${c.id})">
+        <div class="char-price">${c.price} Æ</div>
+        <div class="char-portrait">${c.emoji}</div>
+        <div class="char-info">
+          <div class="char-name">${c.name}</div>
+          <div class="char-anime">${c.anime}</div>
+          <span class="char-rarity-tag tag-${c.rarity}">${c.rarity.replace('_', ' ')}</span>
+        </div>
+      </div>`;
+  }).join('');
+  document.getElementById('marketBal').textContent = formatNum(state.balance);
+}
+function setGrid(n) {
+  haptic('light');
+  state.gridCols = n;
+  document.getElementById('grid1').classList.toggle('active', n === 1);
+  document.getElementById('grid2').classList.toggle('active', n === 2);
+  renderMarket();
+}
+function refreshMarket() {
+  if (state.refreshCooldown > 0) { haptic('error'); return; }
+  haptic('medium');
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+  setTimeout(() => btn.classList.remove('spinning'), 600);
+  state.refreshCount++;
+  state.market = pickMarket(10);
+  renderMarket();
+  if (state.refreshCount >= 3) {
+    state.refreshCooldown = 60;
+    startCooldown();
+  } else {
+    showToast('Market refreshed! ✨', 'success');
+  }
+}
+function startCooldown() {
+  const btn = document.getElementById('refreshBtn');
+  const label = document.getElementById('refreshLabel');
+  btn.classList.add('cooldown');
+  const tick = setInterval(() => {
+    state.refreshCooldown--;
+    label.textContent = state.refreshCooldown + 's';
+    if (state.refreshCooldown <= 0) {
+      clearInterval(tick);
+      btn.classList.remove('cooldown');
+      label.textContent = 'Free';
+      state.refreshCount = 0;
+    }
+  }, 1000);
+  label.textContent = state.refreshCooldown + 's';
+}
+
+/* ============================================================
+   💰 PURCHASE MODAL
+   ============================================================ */
+function findChar(id) {
+  return state.market.find(c => c.id === id) || POOL.find(c => c.id === id);
+}
+function openPurchase(charId) {
+  haptic('light');
+  const c = findChar(charId);
+  if (!c) return;
+  if (state.inventory.some(x => (x.id || x) === charId)) {
+    haptic('warning');
+    showToast('You already own this card!', 'error');
+    return;
+  }
+  state.selectedChar = c;
+  document.getElementById('modalPortrait').textContent = c.emoji;
+  document.getElementById('modalPortrait').style.borderColor = getRarityColor(c.rarity);
+  document.getElementById('modalTitle').textContent = 'Confirm Purchase';
+  document.getElementById('modalName').textContent = c.name;
+  document.getElementById('modalAnime').textContent = c.anime;
+  const rEl = document.getElementById('modalRarity');
+  rEl.textContent = c.rarity.replace('_', ' ');
+  rEl.style.color = getRarityColor(c.rarity);
+  document.getElementById('modalPrice').textContent = c.price + ' Æ';
+  document.getElementById('modalBalance').textContent = formatNum(state.balance) + ' Æ';
+  const confirmBtn = document.getElementById('confirmBtn');
+  confirmBtn.disabled = state.balance < c.price;
+  confirmBtn.textContent = confirmBtn.disabled ? 'Insufficient Æ' : 'Confirm';
+  document.getElementById('purchaseModalContent').classList.remove('success');
+  document.getElementById('purchaseModal').classList.add('show');
+}
+function closeModal() {
+  haptic('light');
+  document.getElementById('purchaseModal').classList.remove('show');
+  state.selectedChar = null;
+}
+function confirmPurchase() {
+  if (!state.selectedChar) return;
+  const c = state.selectedChar;
+  if (state.balance < c.price) { haptic('error'); return; }
+  haptic('success');
+  ribbonBurst(20);
+  state.balance -= c.price;
+  state.inventory.push({id: c.id, name: c.name});
+  state.pulls++;
+  renderUser();
+  const modal = document.getElementById('purchaseModalContent');
+  modal.classList.add('success');
+  document.getElementById('modalTitle').textContent = '✨ Summoned!';
+  document.getElementById('modalName').textContent = c.name + ' joined your collection';
+  document.getElementById('confirmBtn').textContent = '✓ Owned';
+  document.getElementById('confirmBtn').disabled = true;
+  setTimeout(() => {
+    modal.classList.remove('success');
+    closeModal();
+    renderMarket();
+    renderInventory();
+  }, 1400);
+}
+
+/* ============================================================
+   💸 SELL MODAL
+   ============================================================ */
+function openSell(charId) {
+  haptic('light');
+  const c = findChar(charId);
+  if (!c) return;
+  state.selectedSell = c;
+  const refund = Math.floor(c.price * 0.5);
+  document.getElementById('sellPortrait').textContent = c.emoji;
+  document.getElementById('sellPortrait').style.borderColor = getRarityColor(c.rarity);
+  document.getElementById('sellName').textContent = c.name;
+  document.getElementById('sellAnime').textContent = c.anime;
+  const rEl = document.getElementById('sellRarity');
+  rEl.textContent = c.rarity.replace('_', ' ');
+  rEl.style.color = getRarityColor(c.rarity);
+  document.getElementById('sellMarket').textContent = c.price + ' Æ';
+  document.getElementById('sellPrice').textContent = refund + ' Æ';
+  document.getElementById('sellModal').classList.add('show');
+}
+function closeSellModal() {
+  haptic('light');
+  document.getElementById('sellModal').classList.remove('show');
+  state.selectedSell = null;
+}
+function confirmSell() {
+  if (!state.selectedSell) return;
+  const c = state.selectedSell;
+  haptic('success');
+  ribbonBurst(18);
+  const refund = Math.floor(c.price * 0.5);
+  state.balance += refund;
+  state.inventory = state.inventory.filter(x => (x.id || x) !== c.id);
+  state.favIds.delete(c.id);
+  renderUser();
+  setTimeout(() => { closeSellModal(); renderInventory(); renderMarket(); }, 600);
+}
+
+/* ============================================================
+   📦 INVENTORY
+   ============================================================ */
+function getOwned() {
+  return POOL.filter(c => state.inventory.some(x => (x.id || x) === c.id));
+}
+function setInvFilter(f) {
+  haptic('light');
+  state.invFilter = f;
+  document.querySelectorAll('.inv-tab').forEach(t => t.classList.toggle('active', t.dataset.filter === f));
+  renderInventory();
+}
+function renderInventory() {
+  const owned = getOwned();
+  const grid = document.getElementById('invGrid');
+  let filtered = owned;
+  if (state.invFilter === 'FAV') filtered = owned.filter(c => state.favIds.has(c.id));
+  else if (state.invFilter !== 'ALL') filtered = owned.filter(c => c.rarity === state.invFilter);
+  if (filtered.length === 0) {
+    grid.className = 'char-grid';
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🎴</div><div class="empty-text">${owned.length === 0 ? 'No cards yet. Visit the Marketplace!' : 'No cards in this filter.'}</div></div>`;
+  } else {
+    grid.className = 'char-grid' + (state.gridCols === 1 ? ' list' : '');
+    grid.innerHTML = filtered.map(c => {
+      const isFav = state.favIds.has(c.id);
       return `
-        <div class="char-card rarity-${c.rarity}${owned}" onclick="openPurchase(${c.id})">
-          <div class="char-price">${c.price} Æ</div>
+        <div class="char-card rarity-${c.rarity}" onclick="openSell(${c.id})">
+          <div class="fav-btn ${isFav ? 'active' : ''}" onclick="event.stopPropagation();toggleFav(${c.id})">${isFav ? '⭐' : '☆'}</div>
           <div class="char-portrait">${c.emoji}</div>
           <div class="char-info">
             <div class="char-name">${c.name}</div>
@@ -1532,421 +1033,212 @@
         </div>`;
     }).join('');
   }
-
-  function setGrid(n) {
-    haptic('light');
-    gridCols = n;
-    document.getElementById('grid1').classList.toggle('active', n === 1);
-    document.getElementById('grid2').classList.toggle('active', n === 2);
-    renderMarket();
-  }
-
-  function refreshMarket() {
-    if (refreshCooldown > 0) { haptic('error'); return; }
-    haptic('medium');
-    const btn = document.getElementById('refreshBtn');
-    btn.classList.add('spinning');
-    setTimeout(() => btn.classList.remove('spinning'), 600);
-
-    refreshCount++;
-    market = pickMarket(10);
-    renderMarket();
-
-    // Cooldown after 3 free refreshes
-    if (refreshCount >= 3) {
-      refreshCooldown = 60;
-      startCooldown();
-    } else {
-      showToast('Market refreshed! ✨', 'success');
-    }
-  }
-
-  function startCooldown() {
-    const btn = document.getElementById('refreshBtn');
-    const label = document.getElementById('refreshLabel');
-    btn.classList.add('cooldown');
-    const tick = setInterval(() => {
-      refreshCooldown--;
-      label.textContent = refreshCooldown + 's';
-      if (refreshCooldown <= 0) {
-        clearInterval(tick);
-        btn.classList.remove('cooldown');
-        label.textContent = 'Free';
-        refreshCount = 0;
-      }
-    }, 1000);
-    label.textContent = refreshCooldown + 's';
-  }
-
-  /* ============================================================
-     PART 2 — CONFIRM PURCHASE MODAL
-     ============================================================ */
-  function openPurchase(charId) {
-    haptic('light');
-    selectedChar = POOL.find(c => c.id === charId);
-    if (!selectedChar) return;
-    if (ownedIds.has(charId)) {
-      haptic('warning');
-      showToast('You already own this card!', 'error');
-      return;
-    }
-
-    const m = document.getElementById('purchaseModal');
-    document.getElementById('modalPortrait').textContent = selectedChar.emoji;
-    document.getElementById('modalPortrait').style.borderColor = getRarityColor(selectedChar.rarity);
-    document.getElementById('modalName').textContent = selectedChar.name;
-    document.getElementById('modalAnime').textContent = selectedChar.anime;
-    const rEl = document.getElementById('modalRarity');
-    rEl.textContent = selectedChar.rarity.replace('_', ' ');
-    rEl.style.color = getRarityColor(selectedChar.rarity);
-    document.getElementById('modalPrice').textContent = selectedChar.price + ' Æ';
-
-    const bal = parseInt(document.getElementById('balance').textContent.replace(/,/g, ''));
-    document.getElementById('modalBalance').textContent = bal.toLocaleString() + ' Æ';
-
-    const confirmBtn = document.getElementById('confirmBtn');
-    confirmBtn.disabled = bal < selectedChar.price;
-    confirmBtn.textContent = confirmBtn.disabled ? 'Insufficient Æ' : 'Confirm';
-
-    m.classList.add('show');
-  }
-
-  function closeModal() {
-    haptic('light');
-    document.getElementById('purchaseModal').classList.remove('show');
-    selectedChar = null;
-  }
-
-  function confirmPurchase() {
-    if (!selectedChar) return;
-    haptic('success');
-    ribbonBurst(20);
-
-    ownedIds.add(selectedChar.id);
-    const balEl = document.getElementById('balance');
-    const bal = parseInt(balEl.textContent.replace(/,/g, ''));
-    balEl.textContent = (bal - selectedChar.price).toLocaleString();
-
-    // Switch to success state
-    const modal = document.getElementById('purchaseModalContent');
-    modal.classList.add('success');
-    document.querySelector('.modal-title').textContent = '✨ Summoned!';
-    document.querySelector('.modal-sub').textContent = selectedChar.name + ' joined your collection';
-    document.getElementById('confirmBtn').textContent = '✓ Owned';
-    document.getElementById('confirmBtn').disabled = true;
-
-    setTimeout(() => {
-      modal.classList.remove('success');
-      closeModal();
-      renderMarket();
-    }, 1400);
-  }
-
-  function getRarityColor(r) {
-    const colors = {
-      COMMON: '#8a8a8a', RARE: '#4a8aff', EPIC: '#b35cff',
-      LEGENDARY: '#ffd86b', MYTHIC: '#ff5cc8', CELESTIA_X: '#00e6ff', VORTEX: '#ff5cc8',
-    };
-    return colors[r] || '#fff';
-  }
-
-  // Initial market
-  market = pickMarket(10);
-  renderMarket();
+  const value = owned.reduce((s, c) => s + c.price, 0);
+  document.getElementById('invTotal').textContent = owned.length;
+  document.getElementById('invValue').textContent = formatNum(value) + ' Æ';
+  document.getElementById('invFav').textContent = state.favIds.size;
+  document.getElementById('invHeaderSub').textContent = `${owned.length} character${owned.length !== 1 ? 's' : ''}`;
+  ['ALL','LEGENDARY','MYTHIC','EPIC','RARE','CELESTIA_X','VORTEX'].forEach(r => {
+    const el = document.getElementById('cnt-' + r);
+    if (el) el.textContent = r === 'ALL' ? owned.length : owned.filter(c => c.rarity === r).length;
+  });
+  const favEl = document.getElementById('cnt-FAV');
+  if (favEl) favEl.textContent = state.favIds.size;
+  document.getElementById('profTotal').textContent = owned.length;
+  document.getElementById('profValue').textContent = formatNum(value) + ' Æ';
+  document.getElementById('profPulls').textContent = state.pulls;
+  document.getElementById('homeCards').textContent = owned.length;
+  document.getElementById('homeInvSub').textContent = `${owned.length} owned`;
+}
+function toggleFav(id) {
+  haptic('medium');
+  if (state.favIds.has(id)) state.favIds.delete(id);
+  else state.favIds.add(id);
+  renderInventory();
+}
 
 
-  /* ============================================================
-     PART 3 — INVENTORY
-     ============================================================ */
-  let invFilter = 'ALL';
-  let favIds = new Set();
-
-  function getOwned() {
-    return POOL.filter(c => ownedIds.has(c.id));
-  }
-
-  function setInvFilter(f) {
-    haptic('light');
-    invFilter = f;
-    document.querySelectorAll('.inv-tab').forEach(t => t.classList.toggle('active', t.dataset.filter === f));
-    renderInventory();
-  }
-
-  function renderInventory() {
-    const owned = getOwned();
-    const grid = document.getElementById('invGrid');
-    let filtered = owned;
-    if (invFilter === 'FAV') filtered = owned.filter(c => favIds.has(c.id));
-    else if (invFilter !== 'ALL') filtered = owned.filter(c => c.rarity === invFilter);
-
-    if (filtered.length === 0) {
-      grid.className = 'char-grid';
-      grid.innerHTML = `<div class="empty" style="grid-column: 1/-1;"><div class="empty-icon">🎴</div><div class="empty-text">${owned.length === 0 ? 'No cards yet. Visit the Marketplace!' : 'No cards in this filter.'}</div></div>`;
-    } else {
-      grid.className = 'char-grid' + (gridCols === 1 ? ' list' : '');
-      grid.innerHTML = filtered.map(c => {
-        const isFav = favIds.has(c.id);
-        return `
-          <div class="char-card rarity-${c.rarity}" onclick="openSell(${c.id})">
-            <div class="fav-btn ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFav(${c.id})">${isFav ? '⭐' : '☆'}</div>
-            <div class="char-portrait">${c.emoji}</div>
-            <div class="char-info">
-              <div class="char-name">${c.name}</div>
-              <div class="char-anime">${c.anime}</div>
-              <span class="char-rarity-tag tag-${c.rarity}">${c.rarity.replace('_', ' ')}</span>
-            </div>
-          </div>`;
-      }).join('');
-    }
-
-    // Update summary
-    const value = owned.reduce((s, c) => s + c.price, 0);
-    document.getElementById('invTotal').textContent = owned.length;
-    document.getElementById('invValue').textContent = value.toLocaleString() + ' Æ';
-    document.getElementById('invFav').textContent = favIds.size;
-
-    // Update filter counts
-    ['ALL','COMMON','RARE','EPIC','LEGENDARY','MYTHIC','CELESTIA_X','VORTEX'].forEach(r => {
-      const el = document.getElementById('cnt-' + r);
-      if (el) el.textContent = r === 'ALL' ? owned.length : owned.filter(c => c.rarity === r).length;
-    });
-
-    // Update profile stats
-    document.getElementById('profTotal').textContent = owned.length;
-    document.getElementById('profValue').textContent = value.toLocaleString() + ' Æ';
-    document.getElementById('profPulls').textContent = owned.length;
-  }
-
-  function toggleFav(id) {
-    haptic('medium');
-    if (favIds.has(id)) favIds.delete(id);
-    else favIds.add(id);
-    renderInventory();
-  }
-
-  /* Sell modal */
-  function openSell(charId) {
-    haptic('light');
-    const c = POOL.find(x => x.id === charId);
-    if (!c) return;
-    selectedChar = c;
-    const refund = Math.floor(c.price * 0.5);
-    document.getElementById('sellPortrait').textContent = c.emoji;
-    document.getElementById('sellPortrait').style.borderColor = getRarityColor(c.rarity);
-    document.getElementById('sellName').textContent = c.name;
-    document.getElementById('sellAnime').textContent = c.anime;
-    const rEl = document.getElementById('sellRarity');
-    rEl.textContent = c.rarity.replace('_', ' ');
-    rEl.style.color = getRarityColor(c.rarity);
-    document.getElementById('sellMarket').textContent = c.price + ' Æ';
-    document.getElementById('sellPrice').textContent = refund + ' Æ';
-    document.getElementById('sellModal').classList.add('show');
-  }
-
-  function closeSellModal() {
-    haptic('light');
-    document.getElementById('sellModal').classList.remove('show');
-    selectedChar = null;
-  }
-
-  function confirmSell() {
-    if (!selectedChar) return;
-    haptic('success');
-    ribbonBurst(18);
-    const refund = Math.floor(selectedChar.price * 0.5);
-    ownedIds.delete(selectedChar.id);
-    favIds.delete(selectedChar.id);
-    const balEl = document.getElementById('balance');
-    const bal = parseInt(balEl.textContent.replace(/,/g, ''));
-    balEl.textContent = (bal + refund).toLocaleString();
-    setTimeout(() => { closeSellModal(); renderInventory(); renderMarket(); }, 600);
-  }
-
-  /* ============================================================
-     PART 3 — TOP / LEADERBOARD
-     ============================================================ */
-  const LB_GLOBAL = [
-    { name: 'KawaiiSlayer',  avatar: '⚔️', score: 48230, cards: 18 },
-    { name: 'Beast Gohan',   avatar: '🦊', score: 12750, cards: 9,  me: true },
-    { name: 'VortexHunter',  avatar: '🌀', score: 39850, cards: 15 },
-    { name: 'NekoQueen',     avatar: '🐱', score: 35420, cards: 14 },
-    { name: 'SakuraStorm',   avatar: '🌸', score: 29880, cards: 12 },
-    { name: 'OniSlayer',     avatar: '👹', score: 24100, cards: 11 },
-    { name: 'StarGazer',     avatar: '⭐', score: 18750, cards: 10 },
-    { name: 'DragonTamer',   avatar: '🐉', score: 14320, cards: 8 },
-  ];
-  const LB_FRIENDS = [
-    { name: 'You',           avatar: '🦊', score: 12750, cards: 9,  me: true },
-    { name: 'AnimeKing99',   avatar: '👑', score: 9120,  cards: 7 },
-    { name: 'MikuStan',      avatar: '🎤', score: 6450,  cards: 6 },
-    { name: 'WaifuCollector',avatar: '💖', score: 4280,  cards: 5 },
-  ];
-  const LB_GUILD = [
-    { name: 'ShadowMonarchs',avatar: '👁️', score: 89230, cards: 18, isGuild: true },
-    { name: 'Beast Gohan',   avatar: '🦊', score: 12750, cards: 9,  me: true },
-    { name: 'HunterAssoc',   avatar: '⚔️', score: 78450, cards: 16, isGuild: true },
-  ];
-  let lbData = LB_GLOBAL;
-  let lbKind = 'global';
-
-  function setLbTab(kind, btn) {
-    haptic('light');
-    document.querySelectorAll('.tab-switcher button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    lbKind = kind;
-    lbData = kind === 'global' ? LB_GLOBAL : kind === 'friends' ? LB_FRIENDS : LB_GUILD;
-    renderLb();
-  }
-
-  function renderLb() {
-    // Podium (top 3)
-    const top3 = lbData.slice(0, 3);
-    // Reorder for visual: 2nd (tallest center), 1st (left), 3rd (right)
+/* ============================================================
+   🏆 LEADERBOARD
+   ============================================================ */
+function setLbTab(kind, btn) {
+  haptic('light');
+  document.querySelectorAll('.tab-switcher button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.lbKind = kind;
+  state.lbData = state.lb[kind] || [];
+  renderLb();
+}
+function renderLb() {
+  const data = state.lbData;
+  const top3 = data.slice(0, 3);
+  const podium = document.getElementById('podium');
+  if (top3.length >= 3) {
     const order = [top3[1], top3[0], top3[2]];
     const crowns = ['🥈', '👑', '🥉'];
-    const podium = document.getElementById('podium');
-    if (top3.length >= 3) {
-      podium.innerHTML = order.map((u, i) => {
-        const origIdx = [1, 0, 2][i];
-        return `
-          <div class="podium-step">
-            <div class="podium-crown">${crowns[i]}</div>
-            <div class="podium-avatar">${u.avatar}</div>
-            <div class="podium-name">${u.name}</div>
-            <div class="podium-score">${u.score.toLocaleString()}</div>
-          </div>`;
-      }).join('');
-      // Show rest
-      const rest = lbData.slice(3);
-      document.getElementById('leaderboard').innerHTML = rest.map((u, i) => lbRow(u, i + 3)).join('');
-    } else {
-      podium.innerHTML = '';
-      document.getElementById('leaderboard').innerHTML = lbData.map((u, i) => lbRow(u, i)).join('');
-    }
+    podium.innerHTML = order.map((u, i) => `
+      <div class="podium-step">
+        <div class="podium-crown">${crowns[i]}</div>
+        <div class="podium-avatar">${u.avatar}</div>
+        <div class="podium-name">${u.name}</div>
+        <div class="podium-score">${formatNum(u.score)}</div>
+      </div>`).join('');
+    const rest = data.slice(3);
+    document.getElementById('leaderboard').innerHTML = rest.map((u, i) => lbRow(u, i + 3)).join('');
+  } else {
+    podium.innerHTML = '';
+    document.getElementById('leaderboard').innerHTML = data.map((u, i) => lbRow(u, i)).join('');
   }
+}
+function lbRow(u, i) {
+  return `
+    <div class="lb-row ${u.me ? 'me' : ''}">
+      <div class="lb-rank">${i + 1}</div>
+      <div class="lb-avatar">${u.avatar}</div>
+      <div class="lb-info">
+        <div class="lb-name">${u.name}</div>
+        <div class="lb-stats">${u.cards} cards</div>
+      </div>
+      <div class="lb-score">${formatNum(u.score)}</div>
+    </div>`;
+}
 
-  function lbRow(u, i) {
+/* ============================================================
+   🤝 TRADES
+   ============================================================ */
+function renderTrades() {
+  const list = document.getElementById('tradeList');
+  list.innerHTML = state.trades.map(t => {
+    const offerStr = t.offer.map(e => `<span class="trade-mini">${e}</span>`).join('');
+    const wantStr = t.want.map(e => `<span class="trade-mini">${e}</span>`).join('');
     return `
-      <div class="lb-row ${u.me ? 'me' : ''}">
-        <div class="lb-rank">#${i + 1}</div>
-        <div class="lb-avatar">${u.avatar}</div>
-        <div class="lb-info">
-          <div class="lb-name">${u.name}${u.me ? ' (You)' : ''}</div>
-          <div class="lb-stats">${u.cards} cards</div>
+      <div class="trade-card" onclick="haptic('light');showToast('Viewing ${t.user}\\'s trade','success')">
+        <div class="trade-avatar">${t.emoji}</div>
+        <div class="trade-info">
+          <div class="trade-user">${t.user} <span class="trade-status ${t.status}">${t.status}</span></div>
+          <div class="trade-offer">Offers <span class="arrow">→</span> Wants</div>
+          <div class="trade-card-mini">${offerStr} <span class="arrow" style="color:var(--text-dim)">→</span> ${wantStr}</div>
         </div>
-        <div class="lb-score">${u.score.toLocaleString()}</div>
       </div>`;
-  }
+  }).join('');
+}
 
-  // Initial leaderboard render
+/* ============================================================
+   ⏱ EVENT TIMER
+   ============================================================ */
+let eventEndTime = Date.now() + (2 * 24 * 3600 + 14 * 3600 + 32 * 60 + 48) * 1000;
+function updateEventTimer() {
+  const diff = eventEndTime - Date.now();
+  if (diff <= 0) return;
+  const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const s = Math.floor((diff % (1000 * 60)) / 1000);
+  const pad = n => String(n).padStart(2, '0');
+  const dEl = document.getElementById('evDays'); if (dEl) dEl.textContent = pad(d);
+  const hEl = document.getElementById('evHours'); if (hEl) hEl.textContent = pad(h);
+  const mEl = document.getElementById('evMins'); if (mEl) mEl.textContent = pad(m);
+  const sEl = document.getElementById('evSecs'); if (sEl) sEl.textContent = pad(s);
+}
+setInterval(updateEventTimer, 1000);
+
+/* ============================================================
+   🛍 SHOP
+   ============================================================ */
+function buyShop(name, price) {
+  haptic('medium');
+  if (state.balance < price) {
+    haptic('error');
+    showToast(`Not enough Æ! Need ${formatNum(price)}`, 'error');
+    return;
+  }
+  state.balance -= price;
+  renderUser();
+  haptic('success');
+  ribbonBurst(15);
+  showToast(`✓ Purchased ${name}!`, 'success');
+}
+
+/* ============================================================
+   👥 FRIENDS
+   ============================================================ */
+function setFriendsTab(el, tab) {
+  haptic('light');
+  document.querySelectorAll('.friends-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  state.friendsTab = tab;
+  renderFriends(tab);
+}
+function renderFriends(tab) {
+  const list = document.getElementById('friendsList');
+  let friends = state.friends;
+  if (tab === 'online') friends = friends.filter(f => f.online);
+  else if (tab === 'pending') {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">📬</div><div class="empty-text">No friend requests yet. Invite your friends!</div></div>`;
+    return;
+  }
+  if (friends.length === 0) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">😴</div><div class="empty-text">No friends online.</div></div>`;
+    return;
+  }
+  list.innerHTML = friends.map(f => `
+    <div class="friend-row" onclick="haptic('light');showToast('Opening ${f.name}\\'s profile','success')">
+      <div class="friend-avatar">${f.emoji}</div>
+      <div class="friend-info">
+        <div class="friend-name">${f.name}</div>
+        <div class="friend-status ${f.online ? 'online' : ''}">${f.online ? '● Online' : '○ ' + f.last}</div>
+      </div>
+      <button class="friend-action" onclick="event.stopPropagation();haptic('light');showToast('Sent trade request to ${f.name}','success')">Trade</button>
+    </div>`).join('');
+  const onlineCount = state.friends.filter(f => f.online).length;
+  document.getElementById('homeFriendsSub').textContent = `${onlineCount} online`;
+}
+
+/* ============================================================
+   👤 RENDER USER (home + profile)
+   ============================================================ */
+function renderUser() {
+  document.getElementById('balance').textContent = formatNum(state.balance);
+  document.getElementById('homeName').textContent = USER.name;
+  document.getElementById('homeUid').textContent = `UID: ${USER.id} · @${USER.username}`;
+  document.getElementById('homePulls').textContent = state.pulls;
+  document.getElementById('homeStreak').textContent = `${state.streak} 🔥`;
+  document.getElementById('dailyStreak').textContent = `🔥 ${state.streak} days`;
+  document.getElementById('dailySub').textContent = state.streak >= 7 ? `+50% bonus: streak master!` : `+100 Æ base reward`;
+  document.getElementById('profileName').textContent = USER.name;
+  document.getElementById('profileHandle').textContent = '@' + USER.username;
+  document.getElementById('profStreak').textContent = state.streak + ' 🔥';
+  const owned = getOwned();
+  document.getElementById('homeCards').textContent = owned.length;
+  document.getElementById('homeInvSub').textContent = `${owned.length} owned`;
+  const value = owned.reduce((s, c) => s + c.price, 0);
+  document.getElementById('profTotal').textContent = owned.length;
+  document.getElementById('profValue').textContent = formatNum(value) + ' Æ';
+  document.getElementById('profPulls').textContent = state.pulls;
+}
+
+/* ============================================================
+   🚀 INIT
+   ============================================================ */
+async function init() {
+  // Initial render with empty data
+  renderUser();
+  state.market = pickMarket(10);
+  renderMarket();
+  state.lbData = state.lb.global;
   renderLb();
-
-
-     PART 4 — P2P + EVENTS + GAMES + SHOP + FRIENDS
-     ============================================================ */
-  const TRADES = [
-    { user: 'DemonKing',   emoji: '😈', offer: ['⚔️','🩸'],  want: ['🌸','🦊'],       status: 'pending' },
-    { user: 'MoonPrincess', emoji: '👸', offer: ['🌙','💎'],  want: ['⚡','🔥'],       status: 'pending' },
-    { user: 'You',         emoji: '🦊', offer: ['🍥','🌀'],  want: ['🗡️','🌊'],       status: 'mine' },
-    { user: 'SaiyanX',     emoji: '💪', offer: ['⚡','💥'],  want: ['🍃','🛡️'],       status: 'done' },
-  ];
-
-  function renderTrades() {
-    const list = document.getElementById('tradeList');
-    list.innerHTML = TRADES.map(t =﹥ {
-      const offerStr = t.offer.map(e =﹥ `﹤span class="trade-mini"﹥${e}﹤/span﹥`).join('');
-      const wantStr = t.want.map(e =﹥ `﹤span class="trade-mini"﹥${e}﹤/span﹥`).join('');
-      return `
-        ﹤div class="trade-card" onclick="haptic('light'); showToast('Viewing ${t.user}'s trade', 'success')"﹥
-          ﹤div class="trade-avatar"﹥${t.emoji}﹤/div﹥
-          ﹤div class="trade-info"﹥
-            ﹤div class="trade-user"﹥${t.user} ﹤span class="trade-status ${t.status}"﹥${t.status}﹤/span﹥﹤/div﹥
-            ﹤div class="trade-offer"﹥Offers ﹤span class="arrow"﹥→﹤/span﹥ Wants ﹤/div﹥
-            ﹤div class="trade-card-mini"﹥${offerStr} ﹤span class="arrow" style="color: var(--text-dim);"﹥→﹤/span﹥  ${wantStr}﹤/div﹥
-          ﹤/div﹥
-        ﹤/div﹥`;
-    }).join('');
-  }
-
-  /* Event timer */
-  let eventEndTime = Date.now() + (2 * 24 * 3600 + 14 * 3600 + 32 * 60 + 48) * 1000;
-  function updateEventTimer() {
-    const diff = eventEndTime - Date.now();
-    if (diff ﹤= 0) return;
-    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const s = Math.floor((diff % (1000 * 60)) / 1000);
-    const pad = n =﹥ String(n).padStart(2, '0');
-    const dEl = document.getElementById('evDays'); if (dEl) dEl.textContent = pad(d);
-    const hEl = document.getElementById('evHours'); if (hEl) hEl.textContent = pad(h);
-    const mEl = document.getElementById('evMins'); if (mEl) mEl.textContent = pad(m);
-    const sEl = document.getElementById('evSecs'); if (sEl) sEl.textContent = pad(s);
-  }
-  setInterval(updateEventTimer, 1000);
-
-  /* Shop */
-  function buyShop(name, price) {
-    haptic('medium');
-    const bal = parseInt(document.getElementById('balance').textContent.replace(/,/g, ''));
-    if (bal ﹤ price) {
-      haptic('error');
-      showToast(`Not enough Æ! Need ${price.toLocaleString()}`, 'error');
-      return;
-    }
-    document.getElementById('balance').textContent = (bal - price).toLocaleString();
-    haptic('success');
-    ribbonBurst(15);
-    showToast(`✓ Purchased ${name}!`, 'success');
-  }
-
-  /* Friends */
-  const FRIENDS = [
-    { name: 'DemonKing',    emoji: '😈', online: true,  last: 'Summoned Zero Two' },
-    { name: 'MoonPrincess', emoji: '👸', online: true,  last: 'Active 2m ago' },
-    { name: 'SaiyanX',      emoji: '💪', online: true,  last: 'Active 5m ago' },
-    { name: 'NekoMaster',   emoji: '🐱', online: true,  last: 'Active 12m ago' },
-    { name: 'BladeDancer',  emoji: '⚔️', online: false, last: 'Last seen 2h ago' },
-    { name: 'StarGazer',    emoji: '⭐', online: true,  last: 'Active 1m ago' },
-    { name: 'PhoenixRise',  emoji: '🔥', online: false, last: 'Last seen yesterday' },
-    { name: 'OceanSoul',    emoji: '🌊', online: true,  last: 'Active 8m ago' },
-  ];
-
-  function setFriendsTab(el, tab) {
-    haptic('light');
-    document.querySelectorAll('.friends-tab').forEach(t =﹥ t.classList.remove('active'));
-    el.classList.add('active');
-    renderFriends(tab);
-  }
-
-  function renderFriends(tab = 'online') {
-    const list = document.getElementById('friendsList');
-    let friends = FRIENDS;
-    if (tab === 'online') friends = FRIENDS.filter(f =﹥ f.online);
-    else if (tab === 'pending') {
-      list.innerHTML = `﹤div class="empty"﹥﹤div class="empty-icon"﹥📬﹤/div﹥﹤div class="empty-text"﹥No friend requests yet. Invite your friends! ﹤/div﹥﹤/div﹥`;
-      return;
-    }
-    if (friends.length === 0) {
-      list.innerHTML = `﹤div class="empty"﹥﹤div class="empty-icon"﹥😴﹤/div﹥﹤div class="empty-text"﹥No friends online. ﹤/div﹥﹤/div﹥`;
-      return;
-    }
-    list.innerHTML = friends.map(f =﹥ `
-      ﹤div class="friend-row" onclick="haptic('light'); showToast('Opening ${f.name}'s profile', 'success')"﹥
-        ﹤div class="friend-avatar"﹥${f.emoji}﹤/div﹥
-        ﹤div class="friend-info"﹥
-          ﹤div class="friend-name"﹥${f.name} ﹤/div﹥
-          ﹤div class="friend-status ${f.online ? 'online' : ''}"﹥${f.online ? '● Online' : '○ ' + f.last} ﹤/div﹥
-        ﹤/div﹥
-        ﹤button class="friend-action" onclick="event.stopPropagation(); haptic('light'); showToast('Sent trade request to ${f.name}', 'success')"﹥Trade ﹤/button﹥
-      ﹤/div﹥
-    `).join('');
-  }
-
-  // Init
   renderTrades();
-  updateEventTimer();
   renderFriends('online');
-
+  updateEventTimer();
+  // Try to load real data from API (falls back silently to mock)
+  await Promise.all([loadUser(), loadMarket(), loadLeaderboard(), loadFriends()]);
+  // Re-render with real data
+  renderUser();
+  renderMarket();
+  renderLb();
+  renderInventory();
+}
+init();
 </script>
-</html>
+</body>
+</html>	

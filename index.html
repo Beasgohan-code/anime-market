@@ -714,7 +714,11 @@ async function apiGet(path) {
 async function loadUser() {
   const data = await apiGet('/api/user/' + USER.id);
   if (data) {
-    state.balance = data.balance ?? data.astrites ?? 0;
+    const u = data.user || data;
+    state.balance = u.balance ?? data.balance ?? data.astrites ?? 0;
+    state.streak = (u.streak && u.streak.streak_count) ?? u.streak_count ?? data.streak ?? 0;
+    state.pulls = u.total_characters ?? u.pulls ?? data.pulls ?? 0;
+    state.name = u.first_name || u.username || data.username || 'Player';
     const inv = await apiGet('/api/inventory/' + USER.id);
     if (inv && Array.isArray(inv.items || inv.cards || inv.inventory || inv)) {
       const raw = inv.items || inv.cards || inv.inventory || inv;

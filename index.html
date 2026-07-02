@@ -716,8 +716,8 @@ async function loadUser() {
   if (data) {
     state.balance = data.balance ?? data.astrites ?? 0;
     const inv = await apiGet('/api/inventory/' + USER.id);
-    if (inv && Array.isArray(inv.cards || inv.inventory || inv)) {
-      const raw = inv.cards || inv.inventory || inv;
+    if (inv && Array.isArray(inv.items || inv.cards || inv.inventory || inv)) {
+      const raw = inv.items || inv.cards || inv.inventory || inv;
       state.inventory = raw.map(c => ({id:c.id,name:c.name,anime:c.anime,rarity:c.rarity,rarity_emoji:c.rarity_emoji,price:c.price,msg_id:c.msg_id}));
     } else { state.inventory = []; }
     state.streak = data.streak || 0;
@@ -734,7 +734,7 @@ async function loadUser() {
 async function loadMarket() {
   const data = await apiGet('/api/market');
   if (data && Array.isArray(data.cards || data)) {
-    state.market = (data.cards || data).slice(0, 10).map(c => ({...c, emoji: c.rarity_emoji || c.emoji}));
+    state.market = (data.items || data.cards || data).slice(0, 10).map(c => ({...c, emoji: c.rarity_emoji || c.emoji}));
   } else {
     state.market = [...POOL].sort(() => Math.random() - 0.5).slice(0, 10);
   }

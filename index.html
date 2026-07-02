@@ -577,7 +577,7 @@ body::before{
 /* ============================================================
    🔌 API CONFIG — point this to your bot's API tunnel
    ============================================================ */
-const API_BASE = 'https://d804961f5b2ed5.lhr.life';  // 👈 Change to your live tunnel
+const API_BASE = 'https://moderate-drag-soldiers-donate.trycloudflare.com';  // 👈 Change to your live tunnel
 
 /* ============================================================
    🆔 USER — get Telegram user from WebApp
@@ -715,7 +715,11 @@ async function loadUser() {
   const data = await apiGet('/api/user/' + USER.id);
   if (data) {
     state.balance = data.balance ?? data.astrites ?? 0;
-    state.inventory = data.inventory || data.owned || [];
+    const inv = await apiGet('/api/inventory/' + USER.id);
+    if (inv && Array.isArray(inv.cards || inv.inventory || inv)) {
+      const raw = inv.cards || inv.inventory || inv;
+      state.inventory = raw.map(c => ({id:c.id,name:c.name,anime:c.anime,rarity:c.rarity,rarity_emoji:c.rarity_emoji,price:c.price,msg_id:c.msg_id}));
+    } else { state.inventory = []; }
     state.streak = data.streak || 0;
     state.pulls = data.pulls || 0;
   } else {
@@ -730,7 +734,7 @@ async function loadUser() {
 async function loadMarket() {
   const data = await apiGet('/api/market');
   if (data && Array.isArray(data.cards || data)) {
-    state.market = (data.cards || data).slice(0, 10);
+    state.market = (data.cards || data).slice(0, 10).map(c => ({...c, emoji: c.rarity_emoji || c.emoji}));
   } else {
     state.market = [...POOL].sort(() => Math.random() - 0.5).slice(0, 10);
   }
